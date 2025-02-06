@@ -29,8 +29,8 @@ public class ValidationUserTest {
     public static final String INVALID_BLANK_LOGIN = "";
     public static final String INVALID_WITH_SPACE_LOGIN = "lo gin";
     public static final String NAME = "name";
-    public static final LocalDate BIRTHDAY = LocalDate.of(2000, 1,1);
-    public static final LocalDate INVALID_BIRTHDAY = LocalDate.of(2050, 1,1);
+    public static final LocalDate BIRTHDAY = LocalDate.of(2000, 1, 1);
+    public static final LocalDate INVALID_BIRTHDAY = LocalDate.of(2050, 1, 1);
 
     static {
         factory = Validation.buildDefaultValidatorFactory();

@@ -31,6 +31,7 @@ class FilmControllerTest {
 
     private static final Film expectedFilm = new Film(1L, "name", "desc",
             LocalDate.of(1999, 1, 1), 12);
+
     @Test
     void getAllFilms() {
         List<Film> expectedFilms = List.of(expectedFilm);

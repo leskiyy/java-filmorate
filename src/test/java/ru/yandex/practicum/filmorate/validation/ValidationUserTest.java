@@ -87,6 +87,6 @@ public class ValidationUserTest {
 
 
         assertTrue(constraintViolations.iterator().hasNext());
-        assertEquals("must be a past date", iterator.next().getMessage());
+        assertEquals("must be a date in the past or in the present", iterator.next().getMessage());
     }
 }

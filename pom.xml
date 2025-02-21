@@ -108,7 +108,7 @@
 						<goals>
 							<goal>check</goal>
 						</goals>
-                        <phase>test</phase>
+            <phase>test</phase>
 					</execution>
 				</executions>
 			</plugin>

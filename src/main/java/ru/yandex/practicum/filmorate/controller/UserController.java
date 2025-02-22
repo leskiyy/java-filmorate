@@ -2,10 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -31,14 +28,9 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@RequestBody User user) {
-        try {
-            User updatedUser = userService.updateUser(user);
-            log.info("Successfully update user {}", updatedUser);
-            return updatedUser;
-        } catch (NotFoundException e) {
-            log.info(e.getMessage());
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+        User updatedUser = userService.updateUser(user);
+        log.info("Successfully update user {}", updatedUser);
+        return updatedUser;
     }
 
     @PostMapping

@@ -12,7 +12,7 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import java.util.Map;
 
 @Slf4j
-@ControllerAdvice("ru.yandex.practicum.filmorate.controller")
+@ControllerAdvice()
 public class ErrorHandler {
 
     @ExceptionHandler
@@ -27,8 +27,8 @@ public class ErrorHandler {
     public ResponseEntity<Map<String, String>> handleValidation(final ValidationException e) {
         log.error(e.getMessage());
         return ResponseEntity
-                .status(HttpStatus.FORBIDDEN)
-                .body(Map.of("FORBIDDEN", e.getMessage()));
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("BAD_REQUEST", e.getMessage()));
     }
 
     @ExceptionHandler

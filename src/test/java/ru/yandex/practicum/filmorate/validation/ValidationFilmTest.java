@@ -37,12 +37,12 @@ public class ValidationFilmTest {
         factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
 
-        validFilm = new Film(0L, NAME, DESCRIPTION, DATE, 1);
-        invalidNameFilm = new Film(0L, INVALID_NAME, DESCRIPTION, DATE, 1);
-        invalidDescriptionFilm = new Film(0L, NAME, INVALID_DESCRIPTION, DATE, 1);
-        invalidMinimumDateFilm = new Film(0L, NAME, DESCRIPTION, INVALID_PAST_DATE, 1);
-        invalidFutureDateFilm = new Film(0L, NAME, DESCRIPTION, INVALID_FUTURE_DATE, 1);
-        invalidDurationDateFilm = new Film(0L, NAME, DESCRIPTION, DATE, -1);
+        validFilm = new Film(0L, NAME, DESCRIPTION, DATE, 1, 0);
+        invalidNameFilm = new Film(0L, INVALID_NAME, DESCRIPTION, DATE, 1, 0);
+        invalidDescriptionFilm = new Film(0L, NAME, INVALID_DESCRIPTION, DATE, 1, 0);
+        invalidMinimumDateFilm = new Film(0L, NAME, DESCRIPTION, INVALID_PAST_DATE, 1, 0);
+        invalidFutureDateFilm = new Film(0L, NAME, DESCRIPTION, INVALID_FUTURE_DATE, 1, 0);
+        invalidDurationDateFilm = new Film(0L, NAME, DESCRIPTION, DATE, -1, 0);
     }
 
     @Test

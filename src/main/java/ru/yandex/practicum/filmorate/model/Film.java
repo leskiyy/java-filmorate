@@ -1,13 +1,10 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
+import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.validator.MinimumDate;
 
 import java.time.LocalDate;
@@ -16,27 +13,32 @@ import java.time.LocalDate;
  * Film.
  */
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class Film {
 
     @EqualsAndHashCode.Exclude
     private Long id;
 
-    @NonNull
+    @NotNull
     @NotBlank
     private String name;
 
-    @NonNull
+    @NotNull
     @Size(max = 200, message = "Max description length is 200 characters")
     @EqualsAndHashCode.Exclude
     private String description;
 
-    @NonNull
+    @NotNull
     @MinimumDate
     @PastOrPresent(message = "release date can't be in future")
     private LocalDate releaseDate;
 
-    @NonNull
+    @NotNull
     @Positive
     private Integer duration;
+
+    @EqualsAndHashCode.Exclude
+    private Integer rate;
+
 }

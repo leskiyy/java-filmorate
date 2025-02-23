@@ -1,54 +1,59 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.List;
+import java.util.Map;
+
+import static ru.yandex.practicum.filmorate.utils.BooleanAnswerBuilder.*;
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
+@RequiredArgsConstructor
 public class FilmController {
 
-    private final FilmStorage filmStorage;
-
-    public FilmController() {
-        this.filmStorage = new FilmStorage();
-    }
-
-    public FilmController(FilmStorage filmStorage) {
-        this.filmStorage = filmStorage;
-    }
+    private final FilmService filmService;
 
     @GetMapping
     public List<Film> getAllFilms() {
-        List<Film> films = filmStorage.getAllFilms();
+        List<Film> films = filmService.getAllFilms();
         log.info("Successfully get films");
         return films;
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody @Valid Film film) {
-        try {
-            Film updatedFilm = filmStorage.updateFilm(film);
-            log.info("Successfully update film {}", updatedFilm);
-            return updatedFilm;
-        } catch (NotFoundException e) {
-            log.info(e.getMessage());
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+    public Film updateFilm(@RequestBody Film film) {
+        Film updatedFilm = filmService.updateFilm(film);
+        log.info("Successfully update film {}", updatedFilm);
+        return updatedFilm;
     }
 
     @PostMapping
-    public Film addFilm(@RequestBody @Valid Film film) {
-        Film addedFilm = filmStorage.addFilm(film);
+    public Film addFilm(@RequestBody Film film) {
+        Film addedFilm = filmService.addFilm(film);
         log.info("Successfully add film {}", addedFilm);
         return addedFilm;
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public Map<String, String> addFilmLike(@PathVariable long id, @PathVariable long userId) {
+        boolean isSuccess = filmService.addFilmLike(id, userId);
+        return isSuccess ? addLikeSuccessAnswer(id, userId) : addLikeFailAnswer(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public Map<String, String> deleteFilmLike(@PathVariable long id, @PathVariable long userId) {
+        boolean isSuccess = filmService.deleteFilmLike(id, userId);
+        return isSuccess ? deleteLikeSuccessAnswer(id, userId) : deleteLikeFailAnswer(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
+        return filmService.getPopularFilms(count);
     }
 }

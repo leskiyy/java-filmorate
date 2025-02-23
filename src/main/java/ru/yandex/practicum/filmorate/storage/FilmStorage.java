@@ -1,38 +1,22 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
-public class FilmStorage {
+public interface FilmStorage {
 
-    private static Long id = 0L;
-    private final Map<Long, Film> films = new HashMap<>();
+    List<Film> getAllFilms();
 
-    public List<Film> getAllFilms() {
-        return new ArrayList<>(films.values());
-    }
+    Film addFilm(Film film);
 
-    public Film addFilm(Film film) {
-        film.setId(nextId());
-        films.put(film.getId(), film);
-        return film;
-    }
+    Film updateFilm(Film film);
 
-    public Film updateFilm(Film film) {
-        if (!films.containsKey(film.getId())) {
-            throw new NotFoundException("There is no film with id=" + film.getId());
-        }
-        films.put(film.getId(), film);
-        return film;
-    }
+    Optional<Film> getFilmById(long id);
 
-    private long nextId() {
-        return ++id;
-    }
+    boolean addLike(long id, long userId);
 
+    boolean removeLike(long id, long userId);
 }

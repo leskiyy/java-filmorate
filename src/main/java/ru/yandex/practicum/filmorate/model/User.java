@@ -1,17 +1,19 @@
 package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
+import lombok.NoArgsConstructor;
 import ru.yandex.practicum.filmorate.validator.LoginValidator;
 
 import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode(of = {"email"})
 public class User {
     private Long id;
@@ -19,13 +21,14 @@ public class User {
     @Email
     private String email;
 
-    @NonNull
+    @NotNull
     @LoginValidator
     private String login;
 
     private String name;
 
-    @NonNull
+    @NotNull
     @PastOrPresent
     private LocalDate birthday;
+
 }

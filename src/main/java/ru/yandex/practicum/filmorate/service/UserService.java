@@ -11,73 +11,70 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
-import java.util.Set;
 
 @Service
 @Validated
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserStorage userStorage;
+    private final UserStorage storage;
 
     public List<User> getAllUsers() {
-        return userStorage.getAllUsers();
+        return storage.findAll();
     }
 
     public User updateUser(@Valid User user) {
+        validateUser(user.getId());
         validateName(user);
-        return userStorage.updateUser(user);
+        return storage.update(user);
     }
 
     public User addUser(@Valid User user) {
         validateName(user);
-        return userStorage.addUser(user);
+        return storage.save(user);
     }
 
     public boolean addFriend(@Positive long id, @Positive long friendId) {
         if (id == friendId) {
             throw new ValidationException("Can't add yourself as a friend");
         }
-        Set<Long> friends1 = getFriendsIds(id);
-        Set<Long> friends2 = getFriendsIds(friendId);
-        return friends1.add(friendId) && friends2.add(id);
+        validateUser(id, friendId);
+
+        return storage.addFriendshipRow(id, friendId);
     }
 
     public boolean deleteFriend(@Positive long id, @Positive long friendId) {
         if (id == friendId) {
             throw new ValidationException("Can't delete yourself from friends");
         }
-        Set<Long> friends1 = getFriendsIds(id);
-        Set<Long> friends2 = getFriendsIds(friendId);
-        return friends1.remove(friendId) && friends2.remove(id);
+        validateUser(id, friendId);
+        return storage.deleteFriendshipRow(id, friendId);
     }
 
     public List<User> getFriendsByUserId(@Positive long id) {
-        Set<Long> friendsIds = getFriendsIds(id);
-        return getAllUsers().stream()
-                .filter(el -> friendsIds.contains(el.getId()))
-                .toList();
+        validateUser(id);
+        return storage.getFriendsByUserId(id);
     }
 
     public List<User> getCommonFriends(@Positive long id, @Positive long otherId) {
-        Set<Long> friends1 = getFriendsIds(id);
-        Set<Long> friends2 = getFriendsIds(otherId);
-        return userStorage.getAllUsers().stream()
-                .filter(el -> friends1.contains(el.getId()) && friends2.contains(el.getId()))
-                .toList();
-    }
-
-    private Set<Long> getFriendsIds(long id) {
-        Set<Long> friendsIds = userStorage.getFriendsIdsByUserId(id);
-        if (friendsIds == null) {
-            throw new NotFoundException("There is no user with id=" + id);
+        if (id == otherId) {
+            throw new ValidationException("Put different user ids");
         }
-        return friendsIds;
+        validateUser(id, otherId);
+        List<User> friendsByUserId1 = getFriendsByUserId(id);
+        List<User> friendsByUserId2 = getFriendsByUserId(otherId);
+        return friendsByUserId1.stream().filter(friendsByUserId2::contains).toList();
     }
 
     private void validateName(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
+        }
+    }
+
+    private void validateUser(long... ids) {
+        for (long id : ids) {
+            if (!storage.existById(id)) throw new NotFoundException("There is no user with id=" + id);
         }
     }
 }

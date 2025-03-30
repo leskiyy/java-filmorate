@@ -29,7 +29,7 @@ class UserControllerTest {
         User expectedUser = new User();
         when(service.getAllUsers()).thenReturn(List.of(expectedUser));
 
-        List<User> actualUsers = service.getAllUsers();
+        List<User> actualUsers = controller.getUsers();
 
         verify(service, times(1)).getAllUsers();
         assertEquals(1, actualUsers.size());
@@ -42,7 +42,7 @@ class UserControllerTest {
         User userToAdd = new User();
         when(service.addUser(userToAdd)).thenReturn(expectedUser);
 
-        User actualUser = service.addUser(userToAdd);
+        User actualUser = controller.addUser(userToAdd);
 
         verify(service, times(1)).addUser(userToAdd);
         assertEquals(expectedUser, actualUser);
@@ -54,7 +54,7 @@ class UserControllerTest {
         User userToUpdate = new User();
         when(service.updateUser(userToUpdate)).thenReturn(expectedUser);
 
-        User actualUser = service.updateUser(userToUpdate);
+        User actualUser = controller.updateUser(userToUpdate);
 
         verify(service, times(1)).updateUser(userToUpdate);
         assertEquals(expectedUser, actualUser);
@@ -66,7 +66,7 @@ class UserControllerTest {
         when(service.updateUser(userToUpdate)).thenThrow(new NotFoundException("test"));
 
         Throwable throwable = assertThrows(NotFoundException.class,
-                () -> service.updateUser(userToUpdate));
+                () -> controller.updateUser(userToUpdate));
 
         verify(service, times(1)).updateUser(userToUpdate);
 

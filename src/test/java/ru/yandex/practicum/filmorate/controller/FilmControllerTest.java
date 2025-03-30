@@ -5,8 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.yandex.practicum.filmorate.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.List;
@@ -26,10 +26,10 @@ class FilmControllerTest {
 
     @Test
     void getAllFilms() {
-        List<Film> expectedFilms = List.of(new Film());
+        List<FilmDTO> expectedFilms = List.of(new FilmDTO());
         when(service.getAllFilms()).thenReturn(expectedFilms);
 
-        List<Film> actualFilms = controller.getAllFilms();
+        List<FilmDTO> actualFilms = controller.getAllFilms();
 
         verify(service, times(1)).getAllFilms();
         assertEquals(expectedFilms.size(), actualFilms.size());
@@ -38,11 +38,11 @@ class FilmControllerTest {
 
     @Test
     void updateFilm_whenFilmIsFound() {
-        Film expectedFilm = new Film();
-        Film filmToUpdate = new Film();
+        FilmDTO expectedFilm = new FilmDTO();
+        FilmDTO filmToUpdate = new FilmDTO();
         when(service.updateFilm(filmToUpdate)).thenReturn(expectedFilm);
 
-        Film actualFilm = controller.updateFilm(filmToUpdate);
+        FilmDTO actualFilm = controller.updateFilm(filmToUpdate);
 
         verify(service, times(1)).updateFilm(filmToUpdate);
         assertSame(expectedFilm, actualFilm);
@@ -50,7 +50,7 @@ class FilmControllerTest {
 
     @Test
     void updateFilm_whenFilmIsNotFound() {
-        Film filmToUpdate = new Film();
+        FilmDTO filmToUpdate = new FilmDTO();
         when(service.updateFilm(filmToUpdate)).thenThrow(new NotFoundException("test"));
 
         Throwable throwable = assertThrows(NotFoundException.class,
@@ -62,11 +62,11 @@ class FilmControllerTest {
 
     @Test
     void addFilm() {
-        Film filmToAdd = new Film();
-        Film expectedFilm = new Film();
+        FilmDTO filmToAdd = new FilmDTO();
+        FilmDTO expectedFilm = new FilmDTO();
         when(service.addFilm(filmToAdd)).thenReturn(expectedFilm);
 
-        Film actualFilm = controller.addFilm(filmToAdd);
+        FilmDTO actualFilm = controller.addFilm(filmToAdd);
 
         verify(service, times(1)).addFilm(filmToAdd);
         assertSame(expectedFilm, actualFilm);
@@ -114,13 +114,23 @@ class FilmControllerTest {
 
     @Test
     void getPopularFilms() {
-        Film expectedFilm = new Film();
+        FilmDTO expectedFilm = new FilmDTO();
         when(service.getPopularFilms(1)).thenReturn(List.of(expectedFilm));
 
-        List<Film> actualFilms = controller.getPopularFilms(1);
+        List<FilmDTO> actualFilms = controller.getPopularFilms(1);
 
         verify(service, times(1)).getPopularFilms(1);
         assertEquals(1, actualFilms.size());
         assertSame(expectedFilm, actualFilms.getFirst());
+    }
+
+    @Test
+    void getFilmById() {
+        FilmDTO expected = new FilmDTO();
+        when(service.getFilmById(1L)).thenReturn(expected);
+
+        FilmDTO actual = controller.getFilmById(1L);
+        verify(service, times(1)).getFilmById(1L);
+        assertSame(expected, actual);
     }
 }

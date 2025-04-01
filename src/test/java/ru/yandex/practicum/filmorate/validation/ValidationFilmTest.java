@@ -5,7 +5,8 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dto.FilmDTO;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.LocalDate;
 import java.util.Iterator;
@@ -18,12 +19,12 @@ public class ValidationFilmTest {
     private static final ValidatorFactory factory;
     private static final Validator validator;
 
-    private static final Film validFilm;
-    private static final Film invalidNameFilm;
-    private static final Film invalidDescriptionFilm;
-    private static final Film invalidMinimumDateFilm;
-    private static final Film invalidFutureDateFilm;
-    private static final Film invalidDurationDateFilm;
+    private static final FilmDTO validFilm;
+    private static final FilmDTO invalidNameFilm;
+    private static final FilmDTO invalidDescriptionFilm;
+    private static final FilmDTO invalidMinimumDateFilm;
+    private static final FilmDTO invalidFutureDateFilm;
+    private static final FilmDTO invalidDurationDateFilm;
 
     private static final String NAME = "name";
     private static final String INVALID_NAME = "";
@@ -37,25 +38,25 @@ public class ValidationFilmTest {
         factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
 
-        validFilm = new Film(0L, NAME, DESCRIPTION, DATE, 1, 0);
-        invalidNameFilm = new Film(0L, INVALID_NAME, DESCRIPTION, DATE, 1, 0);
-        invalidDescriptionFilm = new Film(0L, NAME, INVALID_DESCRIPTION, DATE, 1, 0);
-        invalidMinimumDateFilm = new Film(0L, NAME, DESCRIPTION, INVALID_PAST_DATE, 1, 0);
-        invalidFutureDateFilm = new Film(0L, NAME, DESCRIPTION, INVALID_FUTURE_DATE, 1, 0);
-        invalidDurationDateFilm = new Film(0L, NAME, DESCRIPTION, DATE, -1, 0);
+        validFilm = new FilmDTO(0L, NAME, DESCRIPTION, DATE, 1, 0, new Mpa(), null);
+        invalidNameFilm = new FilmDTO(0L, INVALID_NAME, DESCRIPTION, DATE, 1, 0, new Mpa(), null);
+        invalidDescriptionFilm = new FilmDTO(0L, NAME, INVALID_DESCRIPTION, DATE, 1, 0, new Mpa(), null);
+        invalidMinimumDateFilm = new FilmDTO(0L, NAME, DESCRIPTION, INVALID_PAST_DATE, 1, 0, new Mpa(), null);
+        invalidFutureDateFilm = new FilmDTO(0L, NAME, DESCRIPTION, INVALID_FUTURE_DATE, 1, 0, new Mpa(), null);
+        invalidDurationDateFilm = new FilmDTO(0L, NAME, DESCRIPTION, DATE, -1, 0, new Mpa(), null);
     }
 
     @Test
     void validateFilm() {
-        Set<ConstraintViolation<Film>> constraintViolations = validator.validate(validFilm);
+        Set<ConstraintViolation<FilmDTO>> constraintViolations = validator.validate(validFilm);
 
         assertFalse(constraintViolations.iterator().hasNext());
     }
 
     @Test
     void validateInvalidNameFilm() {
-        Set<ConstraintViolation<Film>> constraintViolations = validator.validate(invalidNameFilm);
-        Iterator<ConstraintViolation<Film>> iterator = constraintViolations.iterator();
+        Set<ConstraintViolation<FilmDTO>> constraintViolations = validator.validate(invalidNameFilm);
+        Iterator<ConstraintViolation<FilmDTO>> iterator = constraintViolations.iterator();
 
         assertTrue(constraintViolations.iterator().hasNext());
         assertEquals("must not be blank", iterator.next().getMessage());
@@ -63,8 +64,8 @@ public class ValidationFilmTest {
 
     @Test
     void validateInvalidDescriptionFilm() {
-        Set<ConstraintViolation<Film>> constraintViolations = validator.validate(invalidDescriptionFilm);
-        Iterator<ConstraintViolation<Film>> iterator = constraintViolations.iterator();
+        Set<ConstraintViolation<FilmDTO>> constraintViolations = validator.validate(invalidDescriptionFilm);
+        Iterator<ConstraintViolation<FilmDTO>> iterator = constraintViolations.iterator();
 
         assertTrue(constraintViolations.iterator().hasNext());
         assertEquals("Max description length is 200 characters", iterator.next().getMessage());
@@ -72,8 +73,8 @@ public class ValidationFilmTest {
 
     @Test
     void validateInvalidFutureDateFilm() {
-        Set<ConstraintViolation<Film>> constraintViolations = validator.validate(invalidFutureDateFilm);
-        Iterator<ConstraintViolation<Film>> iterator = constraintViolations.iterator();
+        Set<ConstraintViolation<FilmDTO>> constraintViolations = validator.validate(invalidFutureDateFilm);
+        Iterator<ConstraintViolation<FilmDTO>> iterator = constraintViolations.iterator();
 
         assertTrue(constraintViolations.iterator().hasNext());
         assertEquals("release date can't be in future", iterator.next().getMessage());
@@ -81,8 +82,8 @@ public class ValidationFilmTest {
 
     @Test
     void validateInvalidPastDateFilm() {
-        Set<ConstraintViolation<Film>> constraintViolations = validator.validate(invalidMinimumDateFilm);
-        Iterator<ConstraintViolation<Film>> iterator = constraintViolations.iterator();
+        Set<ConstraintViolation<FilmDTO>> constraintViolations = validator.validate(invalidMinimumDateFilm);
+        Iterator<ConstraintViolation<FilmDTO>> iterator = constraintViolations.iterator();
 
         assertTrue(constraintViolations.iterator().hasNext());
         assertEquals("Date must not be before 1895-12-28", iterator.next().getMessage());
@@ -90,8 +91,8 @@ public class ValidationFilmTest {
 
     @Test
     void validateInvalidDurationFilm() {
-        Set<ConstraintViolation<Film>> constraintViolations = validator.validate(invalidDurationDateFilm);
-        Iterator<ConstraintViolation<Film>> iterator = constraintViolations.iterator();
+        Set<ConstraintViolation<FilmDTO>> constraintViolations = validator.validate(invalidDurationDateFilm);
+        Iterator<ConstraintViolation<FilmDTO>> iterator = constraintViolations.iterator();
 
         assertTrue(constraintViolations.iterator().hasNext());
         assertEquals("must be greater than 0", iterator.next().getMessage());

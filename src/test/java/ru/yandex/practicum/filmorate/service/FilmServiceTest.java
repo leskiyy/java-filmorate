@@ -10,10 +10,10 @@ import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.MpaStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.repository.FilmRepository;
+import ru.yandex.practicum.filmorate.repository.GenreRepository;
+import ru.yandex.practicum.filmorate.repository.MpaRepository;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
 import ru.yandex.practicum.filmorate.utils.FilmMapper;
 
 import java.util.Collections;
@@ -27,13 +27,13 @@ import static org.mockito.Mockito.*;
 class FilmServiceTest {
 
     @Mock
-    private FilmStorage filmStorage;
+    private FilmRepository filmRepository;
     @Mock
-    private UserStorage userStorage;
+    private UserRepository userStorage;
     @Mock
-    private MpaStorage mpaStorage;
+    private MpaRepository mpaRepository;
     @Mock
-    private GenreStorage genreStorage;
+    private GenreRepository genreRepository;
 
     @InjectMocks
     private FilmService service;
@@ -45,18 +45,18 @@ class FilmServiceTest {
                 .setRate(5)
                 .setGenres(List.of(new Genre(1, "TestGenre")));
         List<FilmDTO> expectedFilms = List.of(expectedFilm);
-        when(filmStorage.findAll()).thenReturn(List.of(new Film().setId(1L).setMpa(4)));
-        when(filmStorage.rateByFilmId(1L)).thenReturn(5);
-        when(filmStorage.findGenresByFilmId(1L)).thenReturn(List.of(new Genre(1, "TestGenre")));
-        when(mpaStorage.findById(4)).thenReturn(Optional.of(new Mpa(4, "TestMpa")));
+        when(filmRepository.findAll()).thenReturn(List.of(new Film().setId(1L).setMpa(4)));
+        when(filmRepository.rateByFilmId(1L)).thenReturn(5);
+        when(filmRepository.findGenresByFilmId(1L)).thenReturn(List.of(new Genre(1, "TestGenre")));
+        when(mpaRepository.findById(4)).thenReturn(Optional.of(new Mpa(4, "TestMpa")));
 
         List<FilmDTO> actualFilms = service.getAllFilms();
         FilmDTO actualFilm = actualFilms.getFirst();
 
-        verify(filmStorage, times(1)).findAll();
-        verify(filmStorage, times(1)).rateByFilmId(1L);
-        verify(filmStorage, times(1)).findGenresByFilmId(1L);
-        verify(mpaStorage, times(1)).findById(4);
+        verify(filmRepository, times(1)).findAll();
+        verify(filmRepository, times(1)).rateByFilmId(1L);
+        verify(filmRepository, times(1)).findGenresByFilmId(1L);
+        verify(mpaRepository, times(1)).findById(4);
         assertEquals(expectedFilms.size(), actualFilms.size());
         assertEquals(expectedFilms.getFirst(), actualFilms.getFirst());
         assertEquals(expectedFilm.getId(), actualFilm.getId());
@@ -76,18 +76,18 @@ class FilmServiceTest {
                 .setRate(5)
                 .setGenres(List.of(new Genre(1, "TestGenre")));
 
-        when(filmStorage.existById(1L)).thenReturn(true);
-        when(mpaStorage.existById(4)).thenReturn(true);
-        when(genreStorage.existById(1)).thenReturn(true);
-        when(filmStorage.rateByFilmId(1L)).thenReturn(2);
+        when(filmRepository.existById(1L)).thenReturn(true);
+        when(mpaRepository.existById(4)).thenReturn(true);
+        when(genreRepository.existById(1)).thenReturn(true);
+        when(filmRepository.rateByFilmId(1L)).thenReturn(2);
 
         FilmDTO actualFilm = service.updateFilm(filmToUpdate);
 
-        verify(filmStorage, times(1)).update(FilmMapper.mapToFilm(filmToUpdate));
-        verify(filmStorage, times(1)).existById(1L);
-        verify(filmStorage, times(1)).rateByFilmId(1L);
-        verify(mpaStorage, times(1)).existById(4);
-        verify(genreStorage, times(1)).existById(1);
+        verify(filmRepository, times(1)).update(FilmMapper.mapToFilm(filmToUpdate));
+        verify(filmRepository, times(1)).existById(1L);
+        verify(filmRepository, times(1)).rateByFilmId(1L);
+        verify(mpaRepository, times(1)).existById(4);
+        verify(genreRepository, times(1)).existById(1);
 
         assertSame(filmToUpdate, actualFilm);
         assertEquals(2, actualFilm.getRate());
@@ -100,16 +100,16 @@ class FilmServiceTest {
                 .setRate(5)
                 .setGenres(List.of(new Genre(1, "TestGenre")));
 
-        when(filmStorage.existById(1L)).thenReturn(false);
+        when(filmRepository.existById(1L)).thenReturn(false);
 
         Throwable throwable = assertThrows(NotFoundException.class,
                 () -> service.updateFilm(filmToUpdate));
 
-        verify(filmStorage, only()).existById(1L);
-        verify(mpaStorage, never()).existById(4);
-        verify(genreStorage, never()).existById(1);
-        verify(filmStorage, never()).update(FilmMapper.mapToFilm(filmToUpdate));
-        verify(filmStorage, never()).rateByFilmId(1L);
+        verify(filmRepository, only()).existById(1L);
+        verify(mpaRepository, never()).existById(4);
+        verify(genreRepository, never()).existById(1);
+        verify(filmRepository, never()).update(FilmMapper.mapToFilm(filmToUpdate));
+        verify(filmRepository, never()).rateByFilmId(1L);
         assertEquals("There is no film with id=1", throwable.getMessage());
     }
 
@@ -120,17 +120,17 @@ class FilmServiceTest {
                 .setRate(5)
                 .setGenres(List.of(new Genre(1, "TestGenre")));
 
-        when(filmStorage.existById(1L)).thenReturn(true);
-        when(mpaStorage.existById(4)).thenReturn(false);
+        when(filmRepository.existById(1L)).thenReturn(true);
+        when(mpaRepository.existById(4)).thenReturn(false);
 
         Throwable throwable = assertThrows(NotFoundException.class,
                 () -> service.updateFilm(filmToUpdate));
 
-        verify(filmStorage, only()).existById(1L);
-        verify(mpaStorage, only()).existById(4);
-        verify(genreStorage, never()).existById(1);
-        verify(filmStorage, never()).update(FilmMapper.mapToFilm(filmToUpdate));
-        verify(filmStorage, never()).rateByFilmId(1L);
+        verify(filmRepository, only()).existById(1L);
+        verify(mpaRepository, only()).existById(4);
+        verify(genreRepository, never()).existById(1);
+        verify(filmRepository, never()).update(FilmMapper.mapToFilm(filmToUpdate));
+        verify(filmRepository, never()).rateByFilmId(1L);
         assertEquals("There is no mpa with id=4", throwable.getMessage());
     }
 
@@ -141,18 +141,18 @@ class FilmServiceTest {
                 .setRate(5)
                 .setGenres(List.of(new Genre(1, "TestGenre")));
 
-        when(filmStorage.existById(1L)).thenReturn(true);
-        when(mpaStorage.existById(4)).thenReturn(true);
-        when(genreStorage.existById(1)).thenReturn(false);
+        when(filmRepository.existById(1L)).thenReturn(true);
+        when(mpaRepository.existById(4)).thenReturn(true);
+        when(genreRepository.existById(1)).thenReturn(false);
 
         Throwable throwable = assertThrows(NotFoundException.class,
                 () -> service.updateFilm(filmToUpdate));
 
-        verify(filmStorage, only()).existById(1L);
-        verify(mpaStorage, only()).existById(4);
-        verify(genreStorage, only()).existById(1);
-        verify(filmStorage, never()).update(FilmMapper.mapToFilm(filmToUpdate));
-        verify(filmStorage, never()).rateByFilmId(1L);
+        verify(filmRepository, only()).existById(1L);
+        verify(mpaRepository, only()).existById(4);
+        verify(genreRepository, only()).existById(1);
+        verify(filmRepository, never()).update(FilmMapper.mapToFilm(filmToUpdate));
+        verify(filmRepository, never()).rateByFilmId(1L);
         assertEquals("There is no genre with id=1", throwable.getMessage());
     }
 
@@ -160,12 +160,12 @@ class FilmServiceTest {
     void addFilm() {
         FilmDTO dtoToAdd = new FilmDTO();
         Film filmToAdd = FilmMapper.mapToFilm(dtoToAdd);
-        when(filmStorage.save(filmToAdd)).thenReturn(new Film().setId(1L));
+        when(filmRepository.save(filmToAdd)).thenReturn(new Film().setId(1L));
 
         FilmDTO actualFilm = service.addFilm(dtoToAdd);
 
-        verify(filmStorage, times(1)).save(filmToAdd);
-        verify(filmStorage, times(1)).updateGenres(null, 1L);
+        verify(filmRepository, times(1)).save(filmToAdd);
+        verify(filmRepository, times(1)).updateGenres(null, 1L);
         assertSame(dtoToAdd, actualFilm);
         assertEquals(1L, actualFilm.getId());
     }
@@ -174,13 +174,13 @@ class FilmServiceTest {
     void addFilmLike_whenFilmIsNotExist() {
         long filmId = 2L;
         long userId = 10L;
-        when(filmStorage.existById(filmId)).thenReturn(false);
+        when(filmRepository.existById(filmId)).thenReturn(false);
         when(userStorage.existById(userId)).thenReturn(true);
 
         Throwable throwable = assertThrows(NotFoundException.class,
                 () -> service.addFilmLike(filmId, userId));
         verify(userStorage, times(1)).existById(userId);
-        verify(filmStorage, times(1)).existById(filmId);
+        verify(filmRepository, times(1)).existById(filmId);
         assertEquals("There is no film with id=" + filmId, throwable.getMessage());
     }
 
@@ -193,7 +193,7 @@ class FilmServiceTest {
         Throwable throwable = assertThrows(NotFoundException.class,
                 () -> service.addFilmLike(filmId, userId));
         verify(userStorage, times(1)).existById(userId);
-        verify(filmStorage, never()).existById(filmId);
+        verify(filmRepository, never()).existById(filmId);
         assertEquals("There is no user with id=" + userId, throwable.getMessage());
     }
 
@@ -202,14 +202,14 @@ class FilmServiceTest {
         long filmId = 2L;
         long userId = 10L;
 
-        when(filmStorage.existById(filmId)).thenReturn(true);
+        when(filmRepository.existById(filmId)).thenReturn(true);
         when(userStorage.existById(userId)).thenReturn(true);
-        when(filmStorage.addLike(filmId, userId)).thenReturn(false);
+        when(filmRepository.addLike(filmId, userId)).thenReturn(false);
 
         assertFalse(service.addFilmLike(filmId, userId));
 
         verify(userStorage, times(1)).existById(userId);
-        verify(filmStorage, times(1)).existById(filmId);
+        verify(filmRepository, times(1)).existById(filmId);
     }
 
     @Test
@@ -217,27 +217,27 @@ class FilmServiceTest {
         long filmId = 2L;
         long userId = 10L;
 
-        when(filmStorage.existById(filmId)).thenReturn(true);
+        when(filmRepository.existById(filmId)).thenReturn(true);
         when(userStorage.existById(userId)).thenReturn(true);
-        when(filmStorage.addLike(filmId, userId)).thenReturn(true);
+        when(filmRepository.addLike(filmId, userId)).thenReturn(true);
 
         assertTrue(service.addFilmLike(filmId, userId));
 
         verify(userStorage, times(1)).existById(userId);
-        verify(filmStorage, times(1)).existById(filmId);
+        verify(filmRepository, times(1)).existById(filmId);
     }
 
     @Test
     void deleteFilmLike_whenFilmIsNotExist() {
         long filmId = 2L;
         long userId = 10L;
-        when(filmStorage.existById(filmId)).thenReturn(false);
+        when(filmRepository.existById(filmId)).thenReturn(false);
         when(userStorage.existById(userId)).thenReturn(true);
 
         Throwable throwable = assertThrows(NotFoundException.class,
                 () -> service.deleteFilmLike(filmId, userId));
         verify(userStorage, times(1)).existById(userId);
-        verify(filmStorage, times(1)).existById(filmId);
+        verify(filmRepository, times(1)).existById(filmId);
         assertEquals("There is no film with id=" + filmId, throwable.getMessage());
     }
 
@@ -250,7 +250,7 @@ class FilmServiceTest {
         Throwable throwable = assertThrows(NotFoundException.class,
                 () -> service.deleteFilmLike(filmId, userId));
         verify(userStorage, times(1)).existById(userId);
-        verify(filmStorage, never()).existById(filmId);
+        verify(filmRepository, never()).existById(filmId);
         assertEquals("There is no user with id=" + userId, throwable.getMessage());
     }
 
@@ -259,15 +259,15 @@ class FilmServiceTest {
         long filmId = 2L;
         long userId = 10L;
 
-        when(filmStorage.existById(filmId)).thenReturn(true);
+        when(filmRepository.existById(filmId)).thenReturn(true);
         when(userStorage.existById(userId)).thenReturn(true);
-        when(filmStorage.removeLike(filmId, userId)).thenReturn(true);
+        when(filmRepository.removeLike(filmId, userId)).thenReturn(true);
 
         assertTrue(service.deleteFilmLike(filmId, userId));
 
         verify(userStorage, times(1)).existById(userId);
-        verify(filmStorage, times(1)).existById(filmId);
-        verify(filmStorage, times(1)).removeLike(filmId, userId);
+        verify(filmRepository, times(1)).existById(filmId);
+        verify(filmRepository, times(1)).removeLike(filmId, userId);
 
     }
 
@@ -276,15 +276,15 @@ class FilmServiceTest {
         long filmId = 2L;
         long userId = 10L;
 
-        when(filmStorage.existById(filmId)).thenReturn(true);
+        when(filmRepository.existById(filmId)).thenReturn(true);
         when(userStorage.existById(userId)).thenReturn(true);
-        when(filmStorage.removeLike(filmId, userId)).thenReturn(false);
+        when(filmRepository.removeLike(filmId, userId)).thenReturn(false);
 
         assertFalse(service.deleteFilmLike(filmId, userId));
 
         verify(userStorage, times(1)).existById(userId);
-        verify(filmStorage, times(1)).existById(filmId);
-        verify(filmStorage, times(1)).removeLike(filmId, userId);
+        verify(filmRepository, times(1)).existById(filmId);
+        verify(filmRepository, times(1)).removeLike(filmId, userId);
 
     }
 
@@ -296,20 +296,20 @@ class FilmServiceTest {
         List<Film> returnFilms = List.of(new Film().setId(1L),
                 new Film().setId(2L),
                 new Film().setId(3L));
-        when(filmStorage.findAll()).thenReturn(returnFilms);
-        when(filmStorage.rateByFilmId(1L)).thenReturn(1);
-        when(filmStorage.rateByFilmId(2L)).thenReturn(2);
-        when(filmStorage.rateByFilmId(3L)).thenReturn(3);
+        when(filmRepository.findAll()).thenReturn(returnFilms);
+        when(filmRepository.rateByFilmId(1L)).thenReturn(1);
+        when(filmRepository.rateByFilmId(2L)).thenReturn(2);
+        when(filmRepository.rateByFilmId(3L)).thenReturn(3);
 
         List<FilmDTO> popularFilms = service.getPopularFilms(count);
 
-        verify(filmStorage, times(1)).findAll();
-        verify(filmStorage, times(1)).findGenresByFilmId(1L);
-        verify(filmStorage, times(1)).findGenresByFilmId(2L);
-        verify(filmStorage, times(1)).findGenresByFilmId(3L);
-        verify(filmStorage, times(1)).rateByFilmId(1L);
-        verify(filmStorage, times(1)).rateByFilmId(2L);
-        verify(filmStorage, times(1)).rateByFilmId(3L);
+        verify(filmRepository, times(1)).findAll();
+        verify(filmRepository, times(1)).findGenresByFilmId(1L);
+        verify(filmRepository, times(1)).findGenresByFilmId(2L);
+        verify(filmRepository, times(1)).findGenresByFilmId(3L);
+        verify(filmRepository, times(1)).rateByFilmId(1L);
+        verify(filmRepository, times(1)).rateByFilmId(2L);
+        verify(filmRepository, times(1)).rateByFilmId(3L);
 
         assertEquals(count, popularFilms.size());
         assertEquals(expectedFilms.getFirst(), popularFilms.getFirst());
@@ -318,7 +318,7 @@ class FilmServiceTest {
 
     @Test
     void getFilmById_whenFilmIsNotFound() {
-        when(filmStorage.findById(1L)).thenReturn(Optional.empty());
+        when(filmRepository.findById(1L)).thenReturn(Optional.empty());
 
         Throwable throwable = assertThrows(NotFoundException.class, () -> service.getFilmById(1L));
 
@@ -334,15 +334,15 @@ class FilmServiceTest {
                 .setName("test")
                 .setGenres(Collections.emptyList())
                 .setRate(8);
-        when(filmStorage.findById(1L)).thenReturn(Optional.ofNullable(film));
-        when(filmStorage.findGenresByFilmId(1L)).thenReturn(Collections.emptyList());
-        when(filmStorage.rateByFilmId(1L)).thenReturn(8);
+        when(filmRepository.findById(1L)).thenReturn(Optional.ofNullable(film));
+        when(filmRepository.findGenresByFilmId(1L)).thenReturn(Collections.emptyList());
+        when(filmRepository.rateByFilmId(1L)).thenReturn(8);
 
         FilmDTO actualFilm = service.getFilmById(1L);
 
-        verify(filmStorage, times(1)).findById(1L);
-        verify(filmStorage, times(1)).findGenresByFilmId(1L);
-        verify(filmStorage, times(1)).rateByFilmId(1L);
+        verify(filmRepository, times(1)).findById(1L);
+        verify(filmRepository, times(1)).findGenresByFilmId(1L);
+        verify(filmRepository, times(1)).rateByFilmId(1L);
         assertEquals(expectedFilm, actualFilm);
     }
 }

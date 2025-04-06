@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.db;
+package ru.yandex.practicum.filmorate.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
@@ -6,9 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.GenreStorage;
+import ru.yandex.practicum.filmorate.mapper.MpaRowMapper;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,44 +18,44 @@ import static org.junit.jupiter.api.Assertions.*;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({GenreRepository.class, GenreRowMapper.class})
-class GenreRepositoryTest {
+@Import({MpaRepository.class, MpaRowMapper.class})
+class MpaRepositoryTest {
 
-    private final GenreStorage storage;
+    private final MpaRepository repository;
 
     @Test
     void findById_whenIsPresentTrue() {
-        Optional<Genre> genreOptional = storage.findById(1);
-        assertThat(genreOptional)
+        Optional<Mpa> mpaOptional = repository.findById(1);
+        assertThat(mpaOptional)
                 .isPresent()
                 .hasValueSatisfying(genre -> {
                     assertThat(genre).hasFieldOrPropertyWithValue("id", 1);
-                    assertThat(genre).hasFieldOrPropertyWithValue("name", "Комедия");
+                    assertThat(genre).hasFieldOrPropertyWithValue("name", "G");
                 });
     }
 
     @Test
     void findById_whenIsPresentFalse() {
-        Optional<Genre> genreOptional = storage.findById(7);
-        assertThat(genreOptional)
+        Optional<Mpa> mpaOptional = repository.findById(6);
+        assertThat(mpaOptional)
                 .isEmpty();
     }
 
     @Test
     void findAll() {
-        List<Genre> genres = storage.findAll();
-        assertEquals(6, genres.size());
+        List<Mpa> allMpa = repository.findAll();
+        assertEquals(5, allMpa.size());
     }
 
     @Test
     void existById_whenTrue() {
-        boolean existById = storage.existById(1);
+        boolean existById = repository.existById(1);
         assertTrue(existById);
     }
 
     @Test
     void existById_whenFalse() {
-        boolean existById = storage.existById(7);
+        boolean existById = repository.existById(6);
         assertFalse(existById);
     }
 }

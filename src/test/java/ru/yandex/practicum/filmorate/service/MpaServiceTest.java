@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.storage.MpaStorage;
+import ru.yandex.practicum.filmorate.repository.MpaRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.*;
 class MpaServiceTest {
 
     @Mock
-    MpaStorage storage;
+    MpaRepository repository;
 
     @InjectMocks
     MpaService service;
@@ -27,11 +27,11 @@ class MpaServiceTest {
     @Test
     void getAllMpa() {
         List<Mpa> expected = List.of(new Mpa());
-        when(storage.findAll()).thenReturn(expected);
+        when(repository.findAll()).thenReturn(expected);
 
         List<Mpa> actual = service.getAllMpa();
 
-        verify(storage, times(1)).findAll();
+        verify(repository, times(1)).findAll();
         assertSame(expected, actual);
         assertSame(expected.getFirst(), actual.getFirst());
     }
@@ -39,17 +39,17 @@ class MpaServiceTest {
     @Test
     void getMpaById_whenMpaIsFound() {
         Mpa expected = new Mpa();
-        when(storage.findById(1)).thenReturn(Optional.of(expected));
+        when(repository.findById(1)).thenReturn(Optional.of(expected));
 
         Mpa actual = service.getMpaById(1);
 
-        verify(storage, times(1)).findById(1);
+        verify(repository, times(1)).findById(1);
         assertSame(expected, actual);
     }
 
     @Test
     void getMpaById_whenMpaIsNotFound() {
-        when(storage.findById(1)).thenReturn(Optional.empty());
+        when(repository.findById(1)).thenReturn(Optional.empty());
 
         Throwable throwable = assertThrows(NotFoundException.class, () -> service.getMpaById(1));
         assertEquals("There is no mpa with id=1", throwable.getMessage());

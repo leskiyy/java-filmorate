@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.db;
+package ru.yandex.practicum.filmorate.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterEach;
@@ -13,7 +13,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -31,12 +30,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @Import({UserRepository.class, UserRowMapper.class})
 class UserRepositoryTest {
 
-    private final UserStorage storage;
+    private final UserRepository repository;
     private final JdbcTemplate jdbc;
 
     @Test
     void findAll() {
-        List<User> users = storage.findAll();
+        List<User> users = repository.findAll();
         assertEquals(2, users.size());
     }
 
@@ -50,7 +49,7 @@ class UserRepositoryTest {
                 .setName("name")
                 .setBirthday(LocalDate.of(2000, 1, 1));
 
-        User save = storage.save(user);
+        User save = repository.save(user);
         assertNotNull(save.getId());
 
         Map<String, Object> dbUser = jdbc.queryForMap(
@@ -66,7 +65,7 @@ class UserRepositoryTest {
 
     @Test
     void deleteById_whenUserExists() {
-        boolean deleted = storage.deleteById(1L);
+        boolean deleted = repository.deleteById(1L);
 
         assertThat(deleted).isTrue();
         assertThatThrownBy(() -> jdbc.queryForMap("SELECT * FROM USERS WHERE USER_ID = 1"))
@@ -76,7 +75,7 @@ class UserRepositoryTest {
 
     @Test
     void deleteById_whenUserNotExists() {
-        boolean deleted = storage.deleteById(4L);
+        boolean deleted = repository.deleteById(4L);
         assertThat(deleted).isFalse();
     }
 
@@ -89,7 +88,7 @@ class UserRepositoryTest {
                 .setLogin("updated login")
                 .setBirthday(LocalDate.of(2020, 2, 2));
 
-        User updated = storage.update(userToUpdate);
+        User updated = repository.update(userToUpdate);
         assertThat(updated.getId()).isEqualTo(1L);
 
         Map<String, Object> dbUser = jdbc.queryForMap(
@@ -112,12 +111,12 @@ class UserRepositoryTest {
                 .setLogin("updated login")
                 .setBirthday(LocalDate.of(2020, 2, 2));
 
-        assertThatThrownBy(() -> storage.update(userToUpdate)).isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> repository.update(userToUpdate)).isInstanceOf(NotFoundException.class);
     }
 
     @Test
     void findById_whenUserExists() {
-        Optional<User> byId = storage.findById(1);
+        Optional<User> byId = repository.findById(1);
 
         assertThat(byId).isPresent();
 
@@ -133,19 +132,19 @@ class UserRepositoryTest {
 
     @Test
     void findById_whenUserNowExists() {
-        Optional<User> byId = storage.findById(6);
+        Optional<User> byId = repository.findById(6);
         assertThat(byId).isEmpty();
     }
 
     @Test
     void existById_whenTrue() {
-        boolean existById = storage.existById(1);
+        boolean existById = repository.existById(1);
         assertThat(existById).isTrue();
     }
 
     @Test
     void existById_whenFalse() {
-        boolean existById = storage.existById(6);
+        boolean existById = repository.existById(6);
         assertThat(existById).isFalse();
     }
 
@@ -153,13 +152,13 @@ class UserRepositoryTest {
     void addFriendshipRow_whenFriendshipIsSet() {
         addFriendshipRow(1, 2);
 
-        boolean addFriendshipRow = storage.addFriendshipRow(1, 2);
+        boolean addFriendshipRow = repository.addFriendshipRow(1, 2);
         assertThat(addFriendshipRow).isFalse();
     }
 
     @Test
     void addFriendshipRow_whenFriendshipIsNotSet() {
-        boolean addFriendshipRow = storage.addFriendshipRow(1, 2);
+        boolean addFriendshipRow = repository.addFriendshipRow(1, 2);
         assertThat(addFriendshipRow).isTrue();
     }
 
@@ -167,13 +166,13 @@ class UserRepositoryTest {
     void deleteFriendshipRow__whenFriendshipIsSet() {
         addFriendshipRow(1, 2);
 
-        boolean deleteFriendshipRow = storage.deleteFriendshipRow(1, 2);
+        boolean deleteFriendshipRow = repository.deleteFriendshipRow(1, 2);
         assertThat(deleteFriendshipRow).isTrue();
     }
 
     @Test
     void deleteFriendshipRow__whenFriendshipIsNotSet() {
-        boolean deleteFriendshipRow = storage.deleteFriendshipRow(1, 2);
+        boolean deleteFriendshipRow = repository.deleteFriendshipRow(1, 2);
         assertThat(deleteFriendshipRow).isFalse();
     }
 
@@ -181,7 +180,7 @@ class UserRepositoryTest {
     void getFriendsByUserId__whenFriendshipIsNotSet() {
         addFriendshipRow(1, 2);
 
-        List<User> friendsByUserId = storage.getFriendsByUserId(1L);
+        List<User> friendsByUserId = repository.getFriendsByUserId(1L);
         assertThat(friendsByUserId).hasSize(1);
         assertThat(friendsByUserId.getFirst()).hasFieldOrPropertyWithValue("id", 2L)
                 .hasFieldOrPropertyWithValue("name", "name2")

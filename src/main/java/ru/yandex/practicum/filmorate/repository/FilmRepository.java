@@ -1,7 +1,6 @@
-package ru.yandex.practicum.filmorate.storage.db;
+package ru.yandex.practicum.filmorate.repository;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Primary;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -12,7 +11,6 @@ import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -21,10 +19,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-@Primary
 @Repository
 @RequiredArgsConstructor
-public class FilmRepository implements FilmStorage {
+public class FilmRepository {
     private final JdbcTemplate jdbc;
     private final FilmRowMapper filmRowMapper;
     private final GenreRowMapper genreRowMapper;
@@ -38,20 +35,18 @@ public class FilmRepository implements FilmStorage {
     private static final String UPDATE_FILM_QUERY = """
             UPDATE FILMS SET NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?, DURATION = ?, MPA_ID = ? WHERE FILM_ID = ?""";
     private static final String INSERT_FILM_GENRES_QUERY = "MERGE INTO FILM_GENRES(FILM_ID, GENRE_ID) VALUES(?,?)";
-    private static final String CALCULATE_RATE_BY_FILM_ID = "SELECT COUNT(USER_ID) FROM LIKES WHERE FILM_ID = ?";
+    private static final String CALCULATE_RATE_BY_FILM_ID = "SELECT COUNT(USER_ID) FROM FILM_LIKES WHERE FILM_ID = ?";
     private static final String IS_FILM_EXIST = "SELECT EXISTS(SELECT 1 FROM FILMS WHERE FILM_ID = ?)";
     private static final String DELETE_FILMS_GENRES_ROW_QUERY = "DELETE FROM FILM_GENRES WHERE FILM_ID=?";
-    private static final String DELETE_LIKE_ROW_QUERY = "DELETE FROM LIKES WHERE FILM_ID=? AND USER_ID=?";
-    private static final String ADD_LIKE_ROW_QUERY = "INSERT INTO LIKES(FILM_ID, USER_ID) VALUES (?,?)";
+    private static final String DELETE_LIKE_ROW_QUERY = "DELETE FROM FILM_LIKES WHERE FILM_ID=? AND USER_ID=?";
+    private static final String ADD_LIKE_ROW_QUERY = "INSERT INTO FILM_LIKES(FILM_ID, USER_ID) VALUES (?,?)";
     private static final String DELETE_BY_ID = "DELETE FROM FILMS WHERE FILM_ID = ?";
 
 
-    @Override
     public List<Film> findAll() {
         return jdbc.query(FIND_ALL_QUERY, filmRowMapper);
     }
 
-    @Override
     public Film save(Film film) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -69,7 +64,6 @@ public class FilmRepository implements FilmStorage {
         return film;
     }
 
-    @Override
     public Film update(Film film) {
         Long id = film.getId();
         if (!existById(id)) throw new NotFoundException("There is no film with id=" + id);
@@ -86,7 +80,6 @@ public class FilmRepository implements FilmStorage {
         return film;
     }
 
-    @Override
     public Optional<Film> findById(long id) {
         try {
             Film film = jdbc.queryForObject(FIND_FILM_BY_ID_QUERY, filmRowMapper, id);
@@ -96,18 +89,15 @@ public class FilmRepository implements FilmStorage {
         }
     }
 
-    @Override
     public boolean deleteById(long id) {
         int updatedRows = jdbc.update(DELETE_BY_ID, id);
         return updatedRows > 0;
     }
 
-    @Override
     public boolean existById(long id) {
         return jdbc.queryForObject(IS_FILM_EXIST, Boolean.class, id);
     }
 
-    @Override
     public boolean addLike(long id, long userId) {
         try {
             jdbc.update(ADD_LIKE_ROW_QUERY, id, userId);
@@ -117,23 +107,19 @@ public class FilmRepository implements FilmStorage {
         }
     }
 
-    @Override
     public boolean removeLike(long id, long userId) {
         int update = jdbc.update(DELETE_LIKE_ROW_QUERY, id, userId);
         return update > 0;
     }
 
-    @Override
     public List<Genre> findGenresByFilmId(long id) {
         return jdbc.query(GENRES_BY_FILM_ID_QUERY, genreRowMapper, id);
     }
 
-    @Override
     public int rateByFilmId(long id) {
         return jdbc.queryForObject(CALCULATE_RATE_BY_FILM_ID, Integer.class, id);
     }
 
-    @Override
     public void updateGenres(List<Genre> genres, long id) {
         jdbc.update(DELETE_FILMS_GENRES_ROW_QUERY, id);
 

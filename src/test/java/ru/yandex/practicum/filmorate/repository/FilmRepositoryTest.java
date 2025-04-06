@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.db;
+package ru.yandex.practicum.filmorate.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterEach;
@@ -14,7 +14,6 @@ import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -32,12 +31,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @Import({FilmRepository.class, FilmRowMapper.class, GenreRowMapper.class})
 class FilmRepositoryTest {
 
-    private final FilmStorage storage;
+    private final FilmRepository repository;
     private final JdbcTemplate jdbc;
 
     @Test
     void findAll() {
-        List<Film> films = storage.findAll();
+        List<Film> films = repository.findAll();
         assertEquals(1, films.size());
     }
 
@@ -52,7 +51,7 @@ class FilmRepositoryTest {
                 .setDuration(120)
                 .setMpa(5);
 
-        Film save = storage.save(film);
+        Film save = repository.save(film);
 
         assertNotNull(save.getId());
 
@@ -78,7 +77,7 @@ class FilmRepositoryTest {
                 .setDuration(120)
                 .setMpa(3);
 
-        Film update = storage.update(film);
+        Film update = repository.update(film);
 
         Map<String, Object> dbFilm = jdbc.queryForMap(
                 "SELECT * FROM FILMS WHERE FILM_ID = ?",
@@ -95,7 +94,7 @@ class FilmRepositoryTest {
 
     @Test
     void findById_whenFilmExists() {
-        Optional<Film> byId = storage.findById(1);
+        Optional<Film> byId = repository.findById(1);
 
         assertThat(byId).isPresent().hasValueSatisfying(film -> {
             assertThat(film).hasFieldOrPropertyWithValue("id", 1L);
@@ -109,14 +108,14 @@ class FilmRepositoryTest {
 
     @Test
     void findById_whenFilmNotExists() {
-        Optional<Film> byId = storage.findById(6);
+        Optional<Film> byId = repository.findById(6);
 
         assertThat(byId).isEmpty();
     }
 
     @Test
     void deleteById_whenFilmExists() {
-        boolean deleted = storage.deleteById(1L);
+        boolean deleted = repository.deleteById(1L);
 
         assertThat(deleted).isTrue();
         assertThatThrownBy(() -> jdbc.queryForMap("SELECT * FROM FILMS WHERE FILM_ID = 1"))
@@ -126,25 +125,25 @@ class FilmRepositoryTest {
 
     @Test
     void deleteById_whenFilmNotExists() {
-        boolean deleted = storage.deleteById(6L);
+        boolean deleted = repository.deleteById(6L);
         assertThat(deleted).isFalse();
     }
 
     @Test
     void existById_whenTrue() {
-        boolean existById = storage.existById(1);
+        boolean existById = repository.existById(1);
         assertThat(existById).isTrue();
     }
 
     @Test
     void existById_whenFalse() {
-        boolean existById = storage.existById(6);
+        boolean existById = repository.existById(6);
         assertThat(existById).isFalse();
     }
 
     @Test
     void addLike_whenLikeIsNotSet() {
-        boolean addLike = storage.addLike(1, 1);
+        boolean addLike = repository.addLike(1, 1);
         assertThat(addLike).isTrue();
     }
 
@@ -152,7 +151,7 @@ class FilmRepositoryTest {
     void addLike_whenLikeIsSet() {
         addLike(1, 1);
 
-        boolean addLike = storage.addLike(1, 1);
+        boolean addLike = repository.addLike(1, 1);
         assertThat(addLike).isFalse();
     }
 
@@ -160,19 +159,19 @@ class FilmRepositoryTest {
     void removeLike_whenLikeIsSet() {
         addLike(1, 1);
 
-        boolean removeLike = storage.removeLike(1, 1);
+        boolean removeLike = repository.removeLike(1, 1);
         assertThat(removeLike).isTrue();
     }
 
     @Test
     void removeLike_whenLikeIsNotSet() {
-        boolean removeLike = storage.removeLike(1, 1);
+        boolean removeLike = repository.removeLike(1, 1);
         assertThat(removeLike).isFalse();
     }
 
     @Test
     void findGenresByFilmId() {
-        List<Genre> genresByFilmId = storage.findGenresByFilmId(1);
+        List<Genre> genresByFilmId = repository.findGenresByFilmId(1);
 
         assertEquals(2, genresByFilmId.size());
         assertEquals(2, genresByFilmId.getFirst().getId());
@@ -183,14 +182,14 @@ class FilmRepositoryTest {
 
     @Test
     void rateByFilmId() {
-        int rateBefore = storage.rateByFilmId(1);
+        int rateBefore = repository.rateByFilmId(1);
         assertEquals(0, rateBefore);
 
         addLike(1, 1);
 
-        int rateAfter = storage.rateByFilmId(1);
+        int rateAfter = repository.rateByFilmId(1);
         assertEquals(1, rateAfter);
-        storage.removeLike(1, 1);
+        repository.removeLike(1, 1);
     }
 
     @Test
@@ -200,7 +199,7 @@ class FilmRepositoryTest {
         assertThat(genresBefore).contains(2);
         assertThat(genresBefore).contains(6);
 
-        storage.updateGenres(List.of(
+        repository.updateGenres(List.of(
                 new Genre(2, null),
                 new Genre(3, null),
                 new Genre(4, null)), 1);
@@ -231,6 +230,6 @@ class FilmRepositoryTest {
     }
 
     private void addLike(long filmId, long userId) {
-        jdbc.update("INSERT INTO LIKES (FILM_ID, USER_ID) VALUES (?,?)", filmId, userId);
+        jdbc.update("INSERT INTO FILM_LIKES (FILM_ID, USER_ID) VALUES (?,?)", filmId, userId);
     }
 }

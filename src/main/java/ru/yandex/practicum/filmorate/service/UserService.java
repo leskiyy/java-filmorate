@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.util.List;
 
@@ -17,21 +17,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserStorage storage;
+    private final UserRepository repository;
 
     public List<User> getAllUsers() {
-        return storage.findAll();
+        return repository.findAll();
     }
 
     public User updateUser(@Valid User user) {
         validateUser(user.getId());
         validateName(user);
-        return storage.update(user);
+        return repository.update(user);
     }
 
     public User addUser(@Valid User user) {
         validateName(user);
-        return storage.save(user);
+        return repository.save(user);
     }
 
     public boolean addFriend(@Positive long id, @Positive long friendId) {
@@ -40,7 +40,7 @@ public class UserService {
         }
         validateUser(id, friendId);
 
-        return storage.addFriendshipRow(id, friendId);
+        return repository.addFriendshipRow(id, friendId);
     }
 
     public boolean deleteFriend(@Positive long id, @Positive long friendId) {
@@ -48,12 +48,12 @@ public class UserService {
             throw new ValidationException("Can't delete yourself from friends");
         }
         validateUser(id, friendId);
-        return storage.deleteFriendshipRow(id, friendId);
+        return repository.deleteFriendshipRow(id, friendId);
     }
 
     public List<User> getFriendsByUserId(@Positive long id) {
         validateUser(id);
-        return storage.getFriendsByUserId(id);
+        return repository.getFriendsByUserId(id);
     }
 
     public List<User> getCommonFriends(@Positive long id, @Positive long otherId) {
@@ -74,7 +74,7 @@ public class UserService {
 
     private void validateUser(long... ids) {
         for (long id : ids) {
-            if (!storage.existById(id)) throw new NotFoundException("There is no user with id=" + id);
+            if (!repository.existById(id)) throw new NotFoundException("There is no user with id=" + id);
         }
     }
 }

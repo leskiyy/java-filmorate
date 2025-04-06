@@ -10,10 +10,10 @@ import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.MpaStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.repository.FilmRepository;
+import ru.yandex.practicum.filmorate.repository.GenreRepository;
+import ru.yandex.practicum.filmorate.repository.MpaRepository;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
 import ru.yandex.practicum.filmorate.utils.FilmMapper;
 
 import java.util.Comparator;
@@ -25,55 +25,55 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class FilmService {
 
-    private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
-    private final MpaStorage mpaStorage;
-    private final GenreStorage genreStorage;
+    private final FilmRepository filmRepository;
+    private final UserRepository userRepository;
+    private final MpaRepository mpaRepository;
+    private final GenreRepository genreRepository;
 
     public List<FilmDTO> getAllFilms() {
-        return filmStorage.findAll().stream()
+        return filmRepository.findAll().stream()
                 .map(film -> {
-                    Mpa mpa = film.getMpa() == null ? null : mpaStorage.findById(film.getMpa()).orElse(null);
+                    Mpa mpa = film.getMpa() == null ? null : mpaRepository.findById(film.getMpa()).orElse(null);
                     return FilmMapper.mapToDto(film,
-                            filmStorage.findGenresByFilmId(film.getId()),
+                            filmRepository.findGenresByFilmId(film.getId()),
                             mpa,
-                            filmStorage.rateByFilmId(film.getId()));
+                            filmRepository.rateByFilmId(film.getId()));
                 })
                 .toList();
     }
 
     public FilmDTO updateFilm(@Valid FilmDTO filmDto) {
-        if (!filmStorage.existById(filmDto.getId())) {
+        if (!filmRepository.existById(filmDto.getId())) {
             throw new NotFoundException("There is no film with id=" + filmDto.getId());
         }
         validateFilm(filmDto);
 
-        filmStorage.update(FilmMapper.mapToFilm(filmDto));
+        filmRepository.update(FilmMapper.mapToFilm(filmDto));
 
         if (filmDto.getGenres() != null) {
-            filmStorage.updateGenres(filmDto.getGenres(), filmDto.getId());
+            filmRepository.updateGenres(filmDto.getGenres(), filmDto.getId());
         }
-        int rate = filmStorage.rateByFilmId(filmDto.getId());
+        int rate = filmRepository.rateByFilmId(filmDto.getId());
 
         return filmDto.setRate(rate);
     }
 
     public FilmDTO addFilm(@Valid FilmDTO film) {
         validateFilm(film);
-        Film save = filmStorage.save(FilmMapper.mapToFilm(film));
-        filmStorage.updateGenres(film.getGenres(), save.getId());
+        Film save = filmRepository.save(FilmMapper.mapToFilm(film));
+        filmRepository.updateGenres(film.getGenres(), save.getId());
         film.setId(save.getId());
         return film;
     }
 
     public boolean addFilmLike(@Positive long id, @Positive long userId) {
         validateUserAndFilm(id, userId);
-        return filmStorage.addLike(id, userId);
+        return filmRepository.addLike(id, userId);
     }
 
     public boolean deleteFilmLike(@Positive long id, @Positive long userId) {
         validateUserAndFilm(id, userId);
-        return filmStorage.removeLike(id, userId);
+        return filmRepository.removeLike(id, userId);
     }
 
     public List<FilmDTO> getPopularFilms(@Positive int count) {
@@ -84,30 +84,29 @@ public class FilmService {
     }
 
     public FilmDTO getFilmById(@Positive long id) {
-        Optional<Film> optFilm = filmStorage.findById(id);
+        Optional<Film> optFilm = filmRepository.findById(id);
         if (optFilm.isEmpty()) {
             throw new NotFoundException("There is no film with id=" + id);
         }
         Film film = optFilm.get();
         Integer mpaId = film.getMpa();
-        Mpa mpa = mpaId == null ? null : mpaStorage.findById(film.getMpa()).orElse(null);
-        List<Genre> genresByFilmId = filmStorage.findGenresByFilmId(id);
-        int rate = filmStorage.rateByFilmId(id);
+        Mpa mpa = mpaId == null ? null : mpaRepository.findById(film.getMpa()).orElse(null);
+        List<Genre> genresByFilmId = filmRepository.findGenresByFilmId(id);
+        int rate = filmRepository.rateByFilmId(id);
         return FilmMapper.mapToDto(film, genresByFilmId, mpa, rate);
     }
 
     private void validateUserAndFilm(long id, long userId) {
-        if (!userStorage.existById(userId)) {
+        if (!userRepository.existById(userId)) {
             throw new NotFoundException("There is no user with id=" + userId);
         }
-        if (!filmStorage.existById(id)) {
+        if (!filmRepository.existById(id)) {
             throw new NotFoundException("There is no film with id=" + id);
         }
     }
 
-
     private void validateFilm(FilmDTO film) {
-        if (film.getMpa() != null && !mpaStorage.existById(film.getMpa().getId())) {
+        if (film.getMpa() != null && !mpaRepository.existById(film.getMpa().getId())) {
             throw new NotFoundException("There is no mpa with id=" + film.getMpa().getId());
         }
         List<Genre> genres = film.getGenres();
@@ -116,7 +115,7 @@ public class FilmService {
             return;
         }
         for (Genre genre : genres) {
-            if (!genreStorage.existById(genre.getId())) {
+            if (!genreRepository.existById(genre.getId())) {
                 throw new NotFoundException("There is no genre with id=" + genre.getId());
             }
         }

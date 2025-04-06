@@ -1,7 +1,6 @@
-package ru.yandex.practicum.filmorate.storage.db;
+package ru.yandex.practicum.filmorate.repository;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Primary;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -10,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -19,10 +17,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-@Primary
 @Repository
 @RequiredArgsConstructor
-public class UserRepository implements UserStorage {
+public class UserRepository {
 
     private final JdbcTemplate jdbc;
     private final UserRowMapper mapper;
@@ -42,12 +39,10 @@ public class UserRepository implements UserStorage {
                 SELECT FRIEND_ID FROM FRIENDS WHERE USER_ID = ?)""";
     private static final String DELETE_BY_ID = "DELETE FROM USERS WHERE USER_ID = ?";
 
-    @Override
     public List<User> findAll() {
         return jdbc.query(FIND_ALL_QUERY, mapper);
     }
 
-    @Override
     public User save(User user) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -63,13 +58,11 @@ public class UserRepository implements UserStorage {
         return user;
     }
 
-    @Override
     public boolean deleteById(long id) {
         int updatedRows = jdbc.update(DELETE_BY_ID, id);
         return updatedRows > 0;
     }
 
-    @Override
     public User update(User user) {
         Long id = user.getId();
         if (!existById(id)) throw new NotFoundException("There is no user with id=" + id);
@@ -83,7 +76,6 @@ public class UserRepository implements UserStorage {
         return user;
     }
 
-    @Override
     public Optional<User> findById(long id) {
         try {
             User user = jdbc.queryForObject(FIND_BY_ID_QUERY, mapper, id);
@@ -93,12 +85,10 @@ public class UserRepository implements UserStorage {
         }
     }
 
-    @Override
     public boolean existById(long id) {
         return jdbc.queryForObject(IS_EXIST_BY_ID_QUERY, Boolean.class, id);
     }
 
-    @Override
     public boolean addFriendshipRow(long id, long friendId) {
         try {
             jdbc.update(ADD_FRIENDSHIP_ROW_QUERY, id, friendId);
@@ -108,13 +98,11 @@ public class UserRepository implements UserStorage {
         }
     }
 
-    @Override
     public boolean deleteFriendshipRow(long id, long friendId) {
         int deletedRows = jdbc.update(DELETE_FRIENDSHIP_QUERY, id, friendId);
         return deletedRows > 0;
     }
 
-    @Override
     public List<User> getFriendsByUserId(long id) {
         return jdbc.query(FIND_FRIENDS_BY_USER_ID_QUERY, mapper, id);
     }

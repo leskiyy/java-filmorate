@@ -5,6 +5,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.yandex.practicum.filmorate.dto.EventDTO;
 import ru.yandex.practicum.filmorate.dto.ReviewDTO;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
@@ -13,6 +14,7 @@ import ru.yandex.practicum.filmorate.repository.ReviewRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -27,6 +29,8 @@ class ReviewServiceTest {
     private FilmRepository filmRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private EventService eventService;
 
     @InjectMocks
     private ReviewService service;
@@ -95,7 +99,8 @@ class ReviewServiceTest {
     @Test
     void deleteReview_whenTrue() {
         when(reviewRepository.deleteById(1L)).thenReturn(true);
-
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(new Review().setUserId(1L)));
+        when(eventService.createReviewEvent(1L, 1L, "REMOVE")).thenReturn(new EventDTO());
         assertTrue(service.deleteReview(1L));
         verify(reviewRepository, times(1)).deleteById(1L);
     }
@@ -103,7 +108,8 @@ class ReviewServiceTest {
     @Test
     void deleteReview_whenFalse() {
         when(reviewRepository.deleteById(1L)).thenReturn(false);
-
+        when(reviewRepository.findById(1L)).thenReturn(Optional.of(new Review().setUserId(1L)));
+        when(eventService.createReviewEvent(1L, 1L, "REMOVE")).thenReturn(new EventDTO());
         assertFalse(service.deleteReview(1L));
         verify(reviewRepository, times(1)).deleteById(1L);
     }

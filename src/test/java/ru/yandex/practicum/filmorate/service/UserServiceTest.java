@@ -19,7 +19,10 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
 
     @Mock
-    UserRepository repository;
+    private UserRepository repository;
+    @Mock
+    private EventService eventService;
+
 
     @InjectMocks
     UserService service;

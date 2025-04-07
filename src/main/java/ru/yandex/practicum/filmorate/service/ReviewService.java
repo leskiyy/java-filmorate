@@ -44,7 +44,7 @@ public class ReviewService {
         validateUserByUserId(review.getUserId());
         validateFilmByFilmId(review.getFilmId());
         Review save = reviewRepository.save(mapToReview(review));
-        eventService.createReviewEvent(review.getUserId(), review.getFilmId(), METHOD_ADD);
+        eventService.createReviewEvent(save.getUserId(), save.getId(), METHOD_ADD);
         return mapToDto(save, 0);
     }
 
@@ -52,7 +52,7 @@ public class ReviewService {
         validateUserByUserId(review.getUserId());
         validateFilmByFilmId(review.getFilmId());
         Review update = reviewRepository.update(mapToReview(review));
-        eventService.createReviewEvent(review.getUserId(), review.getFilmId(), METHOD_UPDATE);
+        eventService.createReviewEvent(update.getUserId(), update.getId(), METHOD_UPDATE);
         return mapToDto(update, reviewRepository.calculateUsefulByReviewId(update.getId()));
     }
 

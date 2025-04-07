@@ -27,7 +27,7 @@ public class ErrorHandler {
     public ResponseEntity<Map<String, String>> handleValidation(final ValidationException e) {
         log.error(e.getMessage());
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(HttpStatus.NOT_FOUND)
                 .body(Map.of("BAD_REQUEST", e.getMessage()));
     }
 

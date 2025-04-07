@@ -21,12 +21,12 @@ public class EventRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public List<Event> getByUserId(long userId) {
-        String sql = "SELECT * FROM events WHERE user_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM events WHERE user_id = ? ORDER BY created_at ASC";
         return jdbcTemplate.query(sql, this::mapRowToEvent, userId);
     }
 
     public List<Event> getAllEvents() {
-        String sql = "SELECT * FROM events ORDER BY created_at DESC";
+        String sql = "SELECT * FROM events ORDER BY created_at ASC";
         return jdbcTemplate.query(sql, this::mapRowToEvent);
     }
 

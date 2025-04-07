@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.repository.ReviewRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 import static ru.yandex.practicum.filmorate.utils.ReviewMapper.*;
 
@@ -20,10 +21,19 @@ import static ru.yandex.practicum.filmorate.utils.ReviewMapper.*;
 @Validated
 @RequiredArgsConstructor
 public class ReviewService {
-
     private final ReviewRepository reviewRepository;
+
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
+
+    public ReviewDTO getReviewsById(long id) {
+        Optional<Review> optionalReview = reviewRepository.findById(id);
+        if (optionalReview.isEmpty()) {
+            throw new NotFoundException("There is no review with id=" + id);
+        } else {
+            return mapToDto(optionalReview.get(), reviewRepository.calculateUsefulByReviewId(id));
+        }
+    }
 
     public ReviewDTO addReview(@Valid Review review) {
         validateUserByUserId(review.getUserId());
@@ -93,5 +103,4 @@ public class ReviewService {
         if (!reviewRepository.existById(reviewId))
             throw new NotFoundException("There is no review with id=" + reviewId);
     }
-
 }

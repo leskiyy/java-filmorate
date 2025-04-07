@@ -40,6 +40,13 @@ public class ReviewController {
         return isSuccess ? deleteReviewSuccessAnswer(id) : deleteReviewFailAnswer(id);
     }
 
+    @GetMapping("/{id}")
+    public ReviewDTO getReviewById(@PathVariable Long id) {
+        ReviewDTO review = service.getReviewsById(id);
+        log.info("Successfully get review {}", review);
+        return review;
+    }
+
     @GetMapping
     public List<ReviewDTO> getReviewsByParams(@RequestParam(required = false) Long filmId,
                                               @RequestParam(defaultValue = "10") Integer count) {

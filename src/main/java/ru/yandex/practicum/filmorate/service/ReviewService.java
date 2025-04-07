@@ -14,7 +14,7 @@ import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.util.List;
 
-import static ru.yandex.practicum.filmorate.utils.ReviewMapper.mapToDto;
+import static ru.yandex.practicum.filmorate.utils.ReviewMapper.*;
 
 @Service
 @Validated

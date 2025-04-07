@@ -26,6 +26,10 @@ public class ReviewService {
 
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
+    private final EventService eventService;
+    private static final String METHOD_ADD = "ADD";
+    private static final String METHOD_DELETE = "REMOVE";
+    private static final String METHOD_UPDATE = "UPDATE";
 
     public ReviewDTO getReviewsById(@NotNull Long id) {
         Optional<Review> optionalReview = reviewRepository.findById(id);
@@ -40,6 +44,7 @@ public class ReviewService {
         validateUserByUserId(review.getUserId());
         validateFilmByFilmId(review.getFilmId());
         Review save = reviewRepository.save(mapToReview(review));
+        eventService.createReviewEvent(review.getUserId(), review.getFilmId(), METHOD_ADD);
         return mapToDto(save, 0);
     }
 
@@ -47,10 +52,13 @@ public class ReviewService {
         validateUserByUserId(review.getUserId());
         validateFilmByFilmId(review.getFilmId());
         Review update = reviewRepository.update(mapToReview(review));
+        eventService.createReviewEvent(review.getUserId(), review.getFilmId(), METHOD_UPDATE);
         return mapToDto(update, reviewRepository.calculateUsefulByReviewId(update.getId()));
     }
 
     public boolean deleteReview(@Positive long id) {
+        ReviewDTO reviewDTO = getReviewsById(id);
+        eventService.createReviewEvent(reviewDTO.getUserId(), id, METHOD_DELETE);
         return reviewRepository.deleteById(id);
     }
 

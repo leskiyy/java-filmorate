@@ -38,7 +38,7 @@ class ReviewServiceTest {
     @Test
     void addReview() {
         Review reviewToAdd = new Review().setUserId(1L).setFilmId(1L);
-        Review expected = new Review().setId(1L);
+        Review expected = new Review().setId(1L).setUserId(1L);
         when(reviewRepository.save(reviewToAdd)).thenReturn(expected);
         when(userRepository.existById(1L)).thenReturn(true);
         when(filmRepository.existById(1L)).thenReturn(true);
@@ -83,7 +83,7 @@ class ReviewServiceTest {
     @Test
     void updateReview() {
         Review reviewToUpdate = new Review().setUserId(1L).setFilmId(1L);
-        Review expected = new Review().setId(1L);
+        Review expected = new Review().setId(1L).setUserId(1L);
         when(reviewRepository.update(reviewToUpdate)).thenReturn(expected);
         when(userRepository.existById(1L)).thenReturn(true);
         when(filmRepository.existById(1L)).thenReturn(true);

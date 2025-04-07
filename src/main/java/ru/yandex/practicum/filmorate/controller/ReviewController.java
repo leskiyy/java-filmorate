@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.ReviewDTO;
+import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import static ru.yandex.practicum.filmorate.utils.BooleanAnswerBuilder.*;
 public class ReviewController {
 
     private final ReviewService service;
+    private final EventService eventService;
 
     @PostMapping
     public ReviewDTO addReview(@RequestBody ReviewDTO review) {

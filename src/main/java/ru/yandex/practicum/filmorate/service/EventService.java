@@ -59,7 +59,7 @@ public class EventService {
         eventDto.setUserId(userId);
         eventDto.setEventType("FRIEND");
         eventDto.setOperation(operation);
-        eventDto.setEntityId(userId);
+        eventDto.setEntityId(friendId);
         return createEvent(eventDto);
     }
 

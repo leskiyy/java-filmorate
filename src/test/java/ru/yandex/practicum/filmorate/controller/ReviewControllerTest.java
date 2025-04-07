@@ -7,7 +7,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.yandex.practicum.filmorate.dto.ReviewDTO;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 
 import java.util.List;
@@ -28,7 +27,7 @@ class ReviewControllerTest {
     @Test
     void addReview() {
         ReviewDTO expected = new ReviewDTO();
-        Review reviewToAdd = new Review();
+        ReviewDTO reviewToAdd = new ReviewDTO();
         when(service.addReview(reviewToAdd)).thenReturn(expected);
 
         ReviewDTO actual = controller.addReview(reviewToAdd);
@@ -40,7 +39,7 @@ class ReviewControllerTest {
     @Test
     void updateReview_whenReviewIsFound() {
         ReviewDTO expected = new ReviewDTO();
-        Review reviewToUpdate = new Review();
+        ReviewDTO reviewToUpdate = new ReviewDTO();
         when(service.updateReview(reviewToUpdate)).thenReturn(expected);
 
         ReviewDTO actual = controller.updateReview(reviewToUpdate);
@@ -51,7 +50,7 @@ class ReviewControllerTest {
 
     @Test
     void updateReview_whenReviewIsNotFound() {
-        Review reviewToUpdate = new Review();
+        ReviewDTO reviewToUpdate = new ReviewDTO();
         when(service.updateReview(reviewToUpdate)).thenThrow(new NotFoundException("test"));
 
         Throwable throwable = assertThrows(NotFoundException.class, () -> controller.updateReview(reviewToUpdate));

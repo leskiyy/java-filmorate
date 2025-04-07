@@ -63,7 +63,7 @@ public class ReviewRepository {
             return ps;
         }, keyHolder);
 
-        review.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
+        review.setId((Objects.requireNonNull(keyHolder.getKey()).longValue()));
         return review;
     }
 

@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +12,7 @@ import lombok.experimental.Accessors;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewDTO {
-    private Long id;
+    private Long reviewId;
 
     @NotNull
     @NotBlank
@@ -23,11 +22,9 @@ public class ReviewDTO {
     private Boolean isPositive;
 
     @NotNull
-    @Positive
     private Long userId;
 
     @NotNull
-    @Positive
     private Long filmId;
 
     private Integer useful;

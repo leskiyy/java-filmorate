@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.ReviewDTO;
-import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 
 import java.util.List;
@@ -21,14 +20,14 @@ public class ReviewController {
     private final ReviewService service;
 
     @PostMapping
-    public ReviewDTO addReview(@RequestBody Review review) {
+    public ReviewDTO addReview(@RequestBody ReviewDTO review) {
         ReviewDTO addedReview = service.addReview(review);
         log.info("Successfully add review {}", review);
         return addedReview;
     }
 
     @PutMapping
-    public ReviewDTO updateReview(@RequestBody Review review) {
+    public ReviewDTO updateReview(@RequestBody ReviewDTO review) {
         ReviewDTO updatedReview = service.updateReview(review);
         log.info("Successfully update review {}", review);
         return updatedReview;
@@ -41,7 +40,7 @@ public class ReviewController {
     }
 
     @GetMapping("/{id}")
-    public ReviewDTO getReviewById(@PathVariable Long id) {
+    public ReviewDTO getReviewById(@PathVariable long id) {
         ReviewDTO review = service.getReviewsById(id);
         log.info("Successfully get review {}", review);
         return review;
@@ -49,14 +48,17 @@ public class ReviewController {
 
     @GetMapping
     public List<ReviewDTO> getReviewsByParams(@RequestParam(required = false) Long filmId,
-                                              @RequestParam(defaultValue = "10") Integer count) {
+                                              @RequestParam(required = false) Integer count) {
         List<ReviewDTO> response;
         if (filmId == null) {
             response = service.getAllReviews();
             log.info("Successfully get all reviews");
         } else {
+            if (count == null) {
+                count = 10;
+            }
             response = service.getReviewsByFilmId(filmId, count);
-            log.info("Successfully get {} reviews {} of film with id=", count, filmId);
+            log.info("Successfully get {} reviews of film with id={}", response.size(), filmId);
         }
         return response;
     }

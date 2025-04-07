@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class ReviewService {
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
 
-    public ReviewDTO getReviewsById(long id) {
+    public ReviewDTO getReviewsById(@NotNull Long id) {
         Optional<Review> optionalReview = reviewRepository.findById(id);
         if (optionalReview.isEmpty()) {
             throw new NotFoundException("There is no review with id=" + id);
@@ -35,17 +36,17 @@ public class ReviewService {
         }
     }
 
-    public ReviewDTO addReview(@Valid Review review) {
+    public ReviewDTO addReview(@Valid ReviewDTO review) {
         validateUserByUserId(review.getUserId());
         validateFilmByFilmId(review.getFilmId());
-        Review save = reviewRepository.save(review);
+        Review save = reviewRepository.save(mapToReview(review));
         return mapToDto(save, 0);
     }
 
-    public ReviewDTO updateReview(@Valid Review review) {
+    public ReviewDTO updateReview(@Valid ReviewDTO review) {
         validateUserByUserId(review.getUserId());
         validateFilmByFilmId(review.getFilmId());
-        Review update = reviewRepository.update(review);
+        Review update = reviewRepository.update(mapToReview(review));
         return mapToDto(update, reviewRepository.calculateUsefulByReviewId(update.getId()));
     }
 

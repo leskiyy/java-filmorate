@@ -11,12 +11,12 @@ import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.ReviewRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
-import ru.yandex.practicum.filmorate.utils.ReviewMapper;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static ru.yandex.practicum.filmorate.utils.ReviewMapper.*;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
@@ -39,12 +39,12 @@ class ReviewServiceTest {
         when(userRepository.existById(1L)).thenReturn(true);
         when(filmRepository.existById(1L)).thenReturn(true);
 
-        ReviewDTO actual = service.addReview(reviewToAdd);
+        ReviewDTO actual = service.addReview(mapToDto(reviewToAdd, 0));
 
         verify(filmRepository, times(1)).existById(1L);
         verify(userRepository, times(1)).existById(1L);
         verify(reviewRepository, times(1)).save(reviewToAdd);
-        assertEquals(ReviewMapper.mapToDto(expected, 0), actual);
+        assertEquals(mapToDto(expected, 0), actual);
     }
 
     @Test
@@ -53,7 +53,7 @@ class ReviewServiceTest {
         Review expected = new Review().setId(1L);
         when(userRepository.existById(1L)).thenReturn(false);
 
-        Throwable throwable = assertThrows(NotFoundException.class, () -> service.addReview(reviewToAdd));
+        Throwable throwable = assertThrows(NotFoundException.class, () -> service.addReview(mapToDto(reviewToAdd, 0)));
 
         verify(userRepository, times(1)).existById(1L);
         verify(filmRepository, never()).existById(1L);
@@ -68,7 +68,7 @@ class ReviewServiceTest {
         when(userRepository.existById(1L)).thenReturn(true);
         when(filmRepository.existById(1L)).thenReturn(false);
 
-        Throwable throwable = assertThrows(NotFoundException.class, () -> service.addReview(reviewToAdd));
+        Throwable throwable = assertThrows(NotFoundException.class, () -> service.addReview(mapToDto(reviewToAdd, 0)));
 
         verify(userRepository, times(1)).existById(1L);
         verify(filmRepository, times(1)).existById(1L);
@@ -84,12 +84,12 @@ class ReviewServiceTest {
         when(userRepository.existById(1L)).thenReturn(true);
         when(filmRepository.existById(1L)).thenReturn(true);
 
-        ReviewDTO actual = service.updateReview(reviewToUpdate);
+        ReviewDTO actual = service.updateReview(mapToDto(reviewToUpdate, 0));
 
         verify(filmRepository, times(1)).existById(1L);
         verify(userRepository, times(1)).existById(1L);
         verify(reviewRepository, times(1)).update(reviewToUpdate);
-        assertEquals(ReviewMapper.mapToDto(expected, 0), actual);
+        assertEquals(mapToDto(expected, 0), actual);
     }
 
     @Test
@@ -119,7 +119,7 @@ class ReviewServiceTest {
         verify(reviewRepository, times(1)).findAll();
         verify(reviewRepository, times(1)).calculateUsefulByReviewId(1L);
         assertEquals(1, actual.size());
-        assertEquals(ReviewMapper.mapToDto(expected, 2), actual.getFirst());
+        assertEquals(mapToDto(expected, 2), actual.getFirst());
     }
 
     @Test
@@ -135,7 +135,7 @@ class ReviewServiceTest {
         verify(reviewRepository, times(1)).calculateUsefulByReviewId(1L);
         verify(filmRepository, times(1)).existById(1L);
         assertEquals(1, actual.size());
-        assertEquals(ReviewMapper.mapToDto(expected, 2), actual.getFirst());
+        assertEquals(mapToDto(expected, 2), actual.getFirst());
     }
 
     @Test

@@ -24,23 +24,20 @@ public class DirectorController {
 
     @GetMapping("/{id}")
     public Director getDirectorById(@PathVariable int id) {
-        Director directorById = service.getDirectorById(id);
         log.info("Successfully get director with id={}", id);
-        return directorById;
+        return service.getDirectorById(id);
     }
 
     @PostMapping
     public Director addDirector(@RequestBody Director director) {
-        service.addDirector(director);
         log.info("Successfully add director");
-        return director;
+        return service.addDirector(director);
     }
 
     @PutMapping
     public Director updateDirector(@RequestBody Director director) {
-        service.updateDirector(director);
         log.info("Successfully updated director");
-        return director;
+        return service.updateDirector(director);
     }
 
     @DeleteMapping("/{id}")

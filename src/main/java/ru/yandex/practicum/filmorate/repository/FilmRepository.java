@@ -145,14 +145,15 @@ public class FilmRepository {
     }
 
     public void updateDirectors(List<Director> directors, long id) {
-        jdbc.update(DELETE_FILMS_DIRECTORS_ROW_QUERY, id);
+        String sql = "DELETE FROM FILM_DIRECTORS WHERE FILM_ID=?";
+        jdbc.update(sql, id);
 
         if (directors == null || directors.isEmpty()) {
             return;
         }
-
+        sql = "MERGE INTO FILM_DIRECTORS(FILM_ID, DIRECTOR_ID) VALUES(?,?)";
         for (Director director : directors) {
-            jdbc.update(INSERT_FILM_DIRECTORS_QUERY, id, director.getId());
+            jdbc.update(sql, id, director.getId());
         }
     }
 

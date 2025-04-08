@@ -15,5 +15,4 @@ public class Film {
     private LocalDate releaseDate;
     private Integer duration;
     private Integer mpa;
-    private List<Director> directors;
 }

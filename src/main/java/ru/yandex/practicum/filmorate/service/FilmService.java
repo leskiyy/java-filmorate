@@ -7,13 +7,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.repository.FilmRepository;
-import ru.yandex.practicum.filmorate.repository.GenreRepository;
-import ru.yandex.practicum.filmorate.repository.MpaRepository;
-import ru.yandex.practicum.filmorate.repository.UserRepository;
+import ru.yandex.practicum.filmorate.repository.*;
 import ru.yandex.practicum.filmorate.utils.FilmMapper;
 
 import java.util.Comparator;
@@ -29,6 +27,7 @@ public class FilmService {
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
+    private final DirectorRepository directorRepository;
 
     public List<FilmDTO> getAllFilms() {
         return filmRepository.findAll().stream()
@@ -37,7 +36,7 @@ public class FilmService {
                     return FilmMapper.mapToDto(film,
                             filmRepository.findGenresByFilmId(film.getId()),
                             mpa,
-                            filmRepository.rateByFilmId(film.getId()));
+                            filmRepository.rateByFilmId(film.getId()), filmRepository.findDirectorsByFilmId(film.getId()));
                 })
                 .toList();
     }
@@ -62,6 +61,7 @@ public class FilmService {
         validateFilm(film);
         Film save = filmRepository.save(FilmMapper.mapToFilm(film));
         filmRepository.updateGenres(film.getGenres(), save.getId());
+        filmRepository.updateDirectors(film.getDirectors(), save.getId());
         film.setId(save.getId());
         return film;
     }
@@ -92,8 +92,9 @@ public class FilmService {
         Integer mpaId = film.getMpa();
         Mpa mpa = mpaId == null ? null : mpaRepository.findById(film.getMpa()).orElse(null);
         List<Genre> genresByFilmId = filmRepository.findGenresByFilmId(id);
+        List<Director> directorsByFilmId = filmRepository.findDirectorsByFilmId(id);
         int rate = filmRepository.rateByFilmId(id);
-        return FilmMapper.mapToDto(film, genresByFilmId, mpa, rate);
+        return FilmMapper.mapToDto(film, genresByFilmId, mpa, rate, directorsByFilmId);
     }
 
     private void validateUserAndFilm(long id, long userId) {
@@ -110,13 +111,19 @@ public class FilmService {
             throw new NotFoundException("There is no mpa with id=" + film.getMpa().getId());
         }
         List<Genre> genres = film.getGenres();
-
-        if (genres == null) {
-            return;
+        if (genres != null) {
+            for (Genre genre : genres) {
+                if (!genreRepository.existById(genre.getId())) {
+                    throw new NotFoundException("There is no genre with id=" + genre.getId());
+                }
+            }
         }
-        for (Genre genre : genres) {
-            if (!genreRepository.existById(genre.getId())) {
-                throw new NotFoundException("There is no genre with id=" + genre.getId());
+        List<Director> directors = film.getDirectors();
+        if (directors != null) {
+            for (Director director : directors) {
+                if (!directorRepository.isDirectorExists(director.getId())) {
+                    throw new NotFoundException("There is no director with id=" + director.getId());
+                }
             }
         }
     }

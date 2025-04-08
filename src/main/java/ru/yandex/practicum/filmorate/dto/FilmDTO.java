@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.validator.MinimumDate;
@@ -50,5 +51,6 @@ public class FilmDTO {
     private Mpa mpa;
 
     private List<Genre> genres;
+    private List<Director> directors;
 
 }

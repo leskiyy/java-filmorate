@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.utils;
 
 import lombok.experimental.UtilityClass;
 import ru.yandex.practicum.filmorate.dto.FilmDTO;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -21,7 +22,7 @@ public class FilmMapper {
                 .setMpa(mpaId);
     }
 
-    public FilmDTO mapToDto(Film film, List<Genre> genres, Mpa mpa, int rate) {
+    public FilmDTO mapToDto(Film film, List<Genre> genres, Mpa mpa, int rate, List<Director> directors) {
         return new FilmDTO()
                 .setId(film.getId())
                 .setName(film.getName())
@@ -30,6 +31,7 @@ public class FilmMapper {
                 .setDuration(film.getDuration())
                 .setRate(rate)
                 .setMpa(mpa)
-                .setGenres(genres);
+                .setGenres(genres)
+                .setDirectors(directors);
     }
 }

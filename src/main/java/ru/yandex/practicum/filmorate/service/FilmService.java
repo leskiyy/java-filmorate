@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -16,9 +17,12 @@ import ru.yandex.practicum.filmorate.repository.MpaRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 import ru.yandex.practicum.filmorate.utils.FilmMapper;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Validated
@@ -114,6 +118,36 @@ public class FilmService {
                 .toList();
     }
 
+    public List<FilmDTO> getPopularFilmsByGenreAndYear(long genreId, int year, int count) {
+        List<Film> films = filmRepository.getPopularFilmsByGenreAndYear(genreId, year, count);
+        return films.stream()
+                .map(film -> FilmMapper.mapToDto(film,
+                        filmRepository.findGenresByFilmId(film.getId()),
+                        mpaRepository.findById(film.getMpa()).orElse(null),
+                        filmRepository.rateByFilmId(film.getId())))
+                .toList();
+    }
+
+    public List<FilmDTO> getPopularFilmsByGenre(long genreId, int count) {
+        List<Film> films = filmRepository.getPopularFilmsByGenre(genreId, count);
+        return films.stream()
+                .map(film -> FilmMapper.mapToDto(film,
+                        filmRepository.findGenresByFilmId(film.getId()),
+                        mpaRepository.findById(film.getMpa()).orElse(null),
+                        filmRepository.rateByFilmId(film.getId())))
+                .toList();
+    }
+
+    public List<FilmDTO> getPopularFilmsByYear(Integer year, int count) {
+        List<Film> films = filmRepository.getPopularFilmsByYear(year, count);
+        return films.stream()
+                .map(film -> FilmMapper.mapToDto(film,
+                        filmRepository.findGenresByFilmId(film.getId()),
+                        mpaRepository.findById(film.getMpa()).orElse(null),
+                        filmRepository.rateByFilmId(film.getId())))
+                .toList();
+    }
+
     private void validateUserAndFilm(long id, long userId) {
         if (!userRepository.existById(userId)) {
             throw new NotFoundException("There is no user with id=" + userId);
@@ -144,5 +178,4 @@ public class FilmService {
             if (!userRepository.existById(id)) throw new NotFoundException("There is no user with id=" + id);
         }
     }
-
 }

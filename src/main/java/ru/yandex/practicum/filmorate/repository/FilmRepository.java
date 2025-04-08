@@ -3,10 +3,13 @@ package ru.yandex.practicum.filmorate.repository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -136,5 +139,43 @@ public class FilmRepository {
 
     public List<Film> findFilmByUserIdLike(long userId) {
         return jdbc.query(FIND_BY_USER_ID_LIKES, filmRowMapper, userId);
+    }
+
+    public List<Film> getPopularFilmsByGenreAndYear(long genreId, int year, int count) {
+        String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
+                "FROM FILMS f " +
+                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                "JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID " +
+                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                "WHERE fg.GENRE_ID = ? AND YEAR(f.RELEASE_DATE) = ? " +
+                "GROUP BY f.FILM_ID " +
+                "ORDER BY COUNT(fl.USER_ID) DESC " +
+                "LIMIT ?";
+        return jdbc.query(sql, filmRowMapper, genreId, year, count);
+    }
+
+    public List<Film> getPopularFilmsByYear(int year, int count) {
+        String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
+                "FROM FILMS f " +
+                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                "WHERE YEAR(f.RELEASE_DATE) = ? " +
+                "GROUP BY f.FILM_ID " +
+                "ORDER BY COUNT(fl.USER_ID) DESC " +
+                "LIMIT ?";
+        return jdbc.query(sql, filmRowMapper, year, count);
+    }
+
+    public List<Film> getPopularFilmsByGenre(long genreId, int count) {
+        String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
+                "FROM FILMS f " +
+                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                "JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID " +
+                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                "WHERE fg.GENRE_ID = ? " +
+                "GROUP BY f.FILM_ID " +
+                "ORDER BY COUNT(fl.USER_ID) DESC " +
+                "LIMIT ?";
+        return jdbc.query(sql, filmRowMapper, genreId, count);
     }
 }

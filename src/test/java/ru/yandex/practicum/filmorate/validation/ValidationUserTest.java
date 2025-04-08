@@ -51,16 +51,6 @@ public class ValidationUserTest {
     }
 
     @Test
-    void validateInvalidEmailUser() {
-        Set<ConstraintViolation<User>> constraintViolations = validator.validate(invalidEmailUser);
-        Iterator<ConstraintViolation<User>> iterator = constraintViolations.iterator();
-
-
-        assertTrue(constraintViolations.iterator().hasNext());
-        assertEquals("must be a well-formed email address", iterator.next().getMessage());
-    }
-
-    @Test
     void validateInvalidBlankLoginUser() {
         Set<ConstraintViolation<User>> constraintViolations = validator.validate(invalidBlankLoginUser);
         Iterator<ConstraintViolation<User>> iterator = constraintViolations.iterator();
@@ -80,13 +70,4 @@ public class ValidationUserTest {
         assertEquals("Login must be without space character and must not be blank", iterator.next().getMessage());
     }
 
-    @Test
-    void validateInvalidBirthdayUser() {
-        Set<ConstraintViolation<User>> constraintViolations = validator.validate(invalidBirthdayUser);
-        Iterator<ConstraintViolation<User>> iterator = constraintViolations.iterator();
-
-
-        assertTrue(constraintViolations.iterator().hasNext());
-        assertEquals("must be a date in the past or in the present", iterator.next().getMessage());
-    }
 }

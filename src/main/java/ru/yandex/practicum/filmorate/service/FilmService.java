@@ -114,6 +114,36 @@ public class FilmService {
                 .toList();
     }
 
+    public List<FilmDTO> getPopularFilmsByGenreAndYear(long genreId, int year, int count) {
+        List<Film> films = filmRepository.getPopularFilmsByGenreAndYear(genreId, year, count);
+        return films.stream()
+                .map(film -> FilmMapper.mapToDto(film,
+                        filmRepository.findGenresByFilmId(film.getId()),
+                        mpaRepository.findById(film.getMpa()).orElse(null),
+                        filmRepository.rateByFilmId(film.getId())))
+                .toList();
+    }
+
+    public List<FilmDTO> getPopularFilmsByGenre(long genreId, int count) {
+        List<Film> films = filmRepository.getPopularFilmsByGenre(genreId, count);
+        return films.stream()
+                .map(film -> FilmMapper.mapToDto(film,
+                        filmRepository.findGenresByFilmId(film.getId()),
+                        mpaRepository.findById(film.getMpa()).orElse(null),
+                        filmRepository.rateByFilmId(film.getId())))
+                .toList();
+    }
+
+    public List<FilmDTO> getPopularFilmsByYear(Integer year, int count) {
+        List<Film> films = filmRepository.getPopularFilmsByYear(year, count);
+        return films.stream()
+                .map(film -> FilmMapper.mapToDto(film,
+                        filmRepository.findGenresByFilmId(film.getId()),
+                        mpaRepository.findById(film.getMpa()).orElse(null),
+                        filmRepository.rateByFilmId(film.getId())))
+                .toList();
+    }
+
     private void validateUserAndFilm(long id, long userId) {
         if (!userRepository.existById(userId)) {
             throw new NotFoundException("There is no user with id=" + userId);
@@ -144,5 +174,4 @@ public class FilmService {
             if (!userRepository.existById(id)) throw new NotFoundException("There is no user with id=" + id);
         }
     }
-
 }

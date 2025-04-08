@@ -137,4 +137,42 @@ public class FilmRepository {
     public List<Film> findFilmByUserIdLike(long userId) {
         return jdbc.query(FIND_BY_USER_ID_LIKES, filmRowMapper, userId);
     }
+
+    public List<Film> getPopularFilmsByGenreAndYear(long genreId, int year, int count) {
+        String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
+                "FROM FILMS f " +
+                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                "JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID " +
+                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                "WHERE fg.GENRE_ID = ? AND YEAR(f.RELEASE_DATE) = ? " +
+                "GROUP BY f.FILM_ID " +
+                "ORDER BY COUNT(fl.USER_ID) DESC " +
+                "LIMIT ?";
+        return jdbc.query(sql, filmRowMapper, genreId, year, count);
+    }
+
+    public List<Film> getPopularFilmsByYear(int year, int count) {
+        String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
+                "FROM FILMS f " +
+                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                "WHERE YEAR(f.RELEASE_DATE) = ? " +
+                "GROUP BY f.FILM_ID " +
+                "ORDER BY COUNT(fl.USER_ID) DESC " +
+                "LIMIT ?";
+        return jdbc.query(sql, filmRowMapper, year, count);
+    }
+
+    public List<Film> getPopularFilmsByGenre(long genreId, int count) {
+        String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
+                "FROM FILMS f " +
+                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                "JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID " +
+                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                "WHERE fg.GENRE_ID = ? " +
+                "GROUP BY f.FILM_ID " +
+                "ORDER BY COUNT(fl.USER_ID) DESC " +
+                "LIMIT ?";
+        return jdbc.query(sql, filmRowMapper, genreId, count);
+    }
 }

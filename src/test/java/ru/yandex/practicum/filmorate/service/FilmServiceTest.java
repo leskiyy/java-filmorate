@@ -34,6 +34,9 @@ class FilmServiceTest {
     private MpaRepository mpaRepository;
     @Mock
     private GenreRepository genreRepository;
+    @Mock
+    private EventService eventService;
+
 
     @InjectMocks
     private FilmService service;

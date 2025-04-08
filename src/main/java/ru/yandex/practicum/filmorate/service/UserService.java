@@ -18,6 +18,9 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository repository;
+    private final EventService eventService;
+    private static final String METHOD_ADD = "ADD";
+    private static final String METHOD_REMOVE = "REMOVE";
 
     public List<User> getAllUsers() {
         return repository.findAll();
@@ -39,7 +42,7 @@ public class UserService {
             throw new ValidationException("Can't add yourself as a friend");
         }
         validateUser(id, friendId);
-
+        eventService.createFriendEvent(id, friendId, METHOD_ADD);
         return repository.addFriendshipRow(id, friendId);
     }
 
@@ -48,6 +51,7 @@ public class UserService {
             throw new ValidationException("Can't delete yourself from friends");
         }
         validateUser(id, friendId);
+        eventService.createFriendEvent(id, friendId, METHOD_REMOVE);
         return repository.deleteFriendshipRow(id, friendId);
     }
 

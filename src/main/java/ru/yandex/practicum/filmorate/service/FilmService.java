@@ -29,6 +29,10 @@ public class FilmService {
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
+    private final EventService eventService;
+    private static final String METHOD_ADD = "ADD";
+    private static final String METHOD_REMOVE = "REMOVE";
+    private static final String METHOD_UPDATE = "UPDATE";
 
     public List<FilmDTO> getAllFilms() {
         return filmRepository.findAll().stream()
@@ -54,7 +58,6 @@ public class FilmService {
             filmRepository.updateGenres(filmDto.getGenres(), filmDto.getId());
         }
         int rate = filmRepository.rateByFilmId(filmDto.getId());
-
         return filmDto.setRate(rate);
     }
 
@@ -68,11 +71,13 @@ public class FilmService {
 
     public boolean addFilmLike(@Positive long id, @Positive long userId) {
         validateUserAndFilm(id, userId);
+        eventService.createLikeEvent(userId, id, METHOD_ADD);
         return filmRepository.addLike(id, userId);
     }
 
     public boolean deleteFilmLike(@Positive long id, @Positive long userId) {
         validateUserAndFilm(id, userId);
+        eventService.createLikeEvent(userId, id, METHOD_REMOVE);
         return filmRepository.removeLike(id, userId);
     }
 

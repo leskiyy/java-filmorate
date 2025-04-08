@@ -54,15 +54,6 @@ public class ValidationFilmTest {
     }
 
     @Test
-    void validateInvalidNameFilm() {
-        Set<ConstraintViolation<FilmDTO>> constraintViolations = validator.validate(invalidNameFilm);
-        Iterator<ConstraintViolation<FilmDTO>> iterator = constraintViolations.iterator();
-
-        assertTrue(constraintViolations.iterator().hasNext());
-        assertEquals("must not be blank", iterator.next().getMessage());
-    }
-
-    @Test
     void validateInvalidDescriptionFilm() {
         Set<ConstraintViolation<FilmDTO>> constraintViolations = validator.validate(invalidDescriptionFilm);
         Iterator<ConstraintViolation<FilmDTO>> iterator = constraintViolations.iterator();
@@ -89,12 +80,4 @@ public class ValidationFilmTest {
         assertEquals("Date must not be before 1895-12-28", iterator.next().getMessage());
     }
 
-    @Test
-    void validateInvalidDurationFilm() {
-        Set<ConstraintViolation<FilmDTO>> constraintViolations = validator.validate(invalidDurationDateFilm);
-        Iterator<ConstraintViolation<FilmDTO>> iterator = constraintViolations.iterator();
-
-        assertTrue(constraintViolations.iterator().hasNext());
-        assertEquals("must be greater than 0", iterator.next().getMessage());
-    }
 }

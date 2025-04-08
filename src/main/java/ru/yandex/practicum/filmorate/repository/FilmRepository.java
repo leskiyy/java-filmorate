@@ -41,6 +41,8 @@ public class FilmRepository {
     private static final String DELETE_LIKE_ROW_QUERY = "DELETE FROM FILM_LIKES WHERE FILM_ID=? AND USER_ID=?";
     private static final String ADD_LIKE_ROW_QUERY = "INSERT INTO FILM_LIKES(FILM_ID, USER_ID) VALUES (?,?)";
     private static final String DELETE_BY_ID = "DELETE FROM FILMS WHERE FILM_ID = ?";
+    private static final String FIND_BY_USER_ID_LIKES = """
+            SELECT * FROM FILMS WHERE FILM_ID IN (SELECT FILM_ID FROM FILM_LIKES WHERE USER_ID = ?)""";
 
 
     public List<Film> findAll() {
@@ -132,4 +134,7 @@ public class FilmRepository {
         }
     }
 
+    public List<Film> findFilmByUserIdLike(long userId) {
+        return jdbc.query(FIND_BY_USER_ID_LIKES, filmRowMapper, userId);
+    }
 }

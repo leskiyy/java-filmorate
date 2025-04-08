@@ -101,6 +101,19 @@ public class FilmService {
         return FilmMapper.mapToDto(film, genresByFilmId, mpa, rate);
     }
 
+    public List<FilmDTO> getCommonFilms(long userId, long friendId) {
+        validateUser(userId, friendId);
+        List<Film> userFilms = filmRepository.findFilmByUserIdLike(userId);
+        List<Long> friendFilmsIds = filmRepository.findFilmByUserIdLike(friendId).stream().map(Film::getId).toList();
+        return userFilms.stream()
+                .filter(film -> friendFilmsIds.contains(film.getId()))
+                .map(film -> FilmMapper.mapToDto(film,
+                        filmRepository.findGenresByFilmId(film.getId()),
+                        mpaRepository.findById(film.getMpa()).orElse(null),
+                        filmRepository.rateByFilmId(film.getId())))
+                .toList();
+    }
+
     private void validateUserAndFilm(long id, long userId) {
         if (!userRepository.existById(userId)) {
             throw new NotFoundException("There is no user with id=" + userId);
@@ -125,4 +138,11 @@ public class FilmService {
             }
         }
     }
+
+    private void validateUser(long... ids) {
+        for (long id : ids) {
+            if (!userRepository.existById(id)) throw new NotFoundException("There is no user with id=" + id);
+        }
+    }
+
 }

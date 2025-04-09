@@ -28,6 +28,10 @@ public class FilmService {
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
+    private final EventService eventService;
+    private static final String METHOD_ADD = "ADD";
+    private static final String METHOD_REMOVE = "REMOVE";
+    private static final String METHOD_UPDATE = "UPDATE";
 
     public List<FilmDTO> getAllFilms() {
         return filmRepository.findAll().stream()
@@ -54,7 +58,6 @@ public class FilmService {
             filmRepository.updateGenres(filmDto.getGenres(), filmDto.getId());
         }
         int rate = filmRepository.rateByFilmId(filmDto.getId());
-
         return filmDto.setRate(rate);
     }
 
@@ -69,11 +72,13 @@ public class FilmService {
 
     public boolean addFilmLike(@Positive long id, @Positive long userId) {
         validateUserAndFilm(id, userId);
+        eventService.createLikeEvent(userId, id, METHOD_ADD);
         return filmRepository.addLike(id, userId);
     }
 
     public boolean deleteFilmLike(@Positive long id, @Positive long userId) {
         validateUserAndFilm(id, userId);
+        eventService.createLikeEvent(userId, id, METHOD_REMOVE);
         return filmRepository.removeLike(id, userId);
     }
 
@@ -96,6 +101,49 @@ public class FilmService {
         List<Director> directorsByFilmId = filmRepository.findDirectorsByFilmId(id);
         int rate = filmRepository.rateByFilmId(id);
         return FilmMapper.mapToDto(film, genresByFilmId, mpa, rate, directorsByFilmId);
+    }
+
+    public List<FilmDTO> getCommonFilms(long userId, long friendId) {
+        validateUser(userId, friendId);
+        List<Film> userFilms = filmRepository.findFilmByUserIdLike(userId);
+        List<Long> friendFilmsIds = filmRepository.findFilmByUserIdLike(friendId).stream().map(Film::getId).toList();
+        return userFilms.stream()
+                .filter(film -> friendFilmsIds.contains(film.getId()))
+                .map(film -> FilmMapper.mapToDto(film,
+                        filmRepository.findGenresByFilmId(film.getId()),
+                        mpaRepository.findById(film.getMpa()).orElse(null),
+                        filmRepository.rateByFilmId(film.getId())))
+                .toList();
+    }
+
+    public List<FilmDTO> getPopularFilmsByGenreAndYear(long genreId, int year, int count) {
+        List<Film> films = filmRepository.getPopularFilmsByGenreAndYear(genreId, year, count);
+        return films.stream()
+                .map(film -> FilmMapper.mapToDto(film,
+                        filmRepository.findGenresByFilmId(film.getId()),
+                        mpaRepository.findById(film.getMpa()).orElse(null),
+                        filmRepository.rateByFilmId(film.getId())))
+                .toList();
+    }
+
+    public List<FilmDTO> getPopularFilmsByGenre(long genreId, int count) {
+        List<Film> films = filmRepository.getPopularFilmsByGenre(genreId, count);
+        return films.stream()
+                .map(film -> FilmMapper.mapToDto(film,
+                        filmRepository.findGenresByFilmId(film.getId()),
+                        mpaRepository.findById(film.getMpa()).orElse(null),
+                        filmRepository.rateByFilmId(film.getId())))
+                .toList();
+    }
+
+    public List<FilmDTO> getPopularFilmsByYear(Integer year, int count) {
+        List<Film> films = filmRepository.getPopularFilmsByYear(year, count);
+        return films.stream()
+                .map(film -> FilmMapper.mapToDto(film,
+                        filmRepository.findGenresByFilmId(film.getId()),
+                        mpaRepository.findById(film.getMpa()).orElse(null),
+                        filmRepository.rateByFilmId(film.getId())))
+                .toList();
     }
 
     private void validateUserAndFilm(long id, long userId) {
@@ -133,5 +181,11 @@ public class FilmService {
                 sortedFilms.add(getFilmById(filmId));
             }
             return sortedFilms;
+    }
+
+    private void validateUser(long... ids) {
+        for (long id : ids) {
+            if (!userRepository.existById(id)) throw new NotFoundException("There is no user with id=" + id);
+        }
     }
 }

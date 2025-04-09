@@ -60,9 +60,24 @@ public class FilmController {
         return isSuccess ? deleteLikeSuccessAnswer(id, userId) : deleteLikeFailAnswer(id, userId);
     }
 
+    @GetMapping("/common")
+    public List<FilmDTO> getCommonFilms(@RequestParam long userId, @RequestParam long friendId) {
+        List<FilmDTO> commonFilms = filmService.getCommonFilms(userId, friendId);
+        log.info("Successfully get common {} films", commonFilms.size());
+        return commonFilms;
+    }
+
     @GetMapping("/popular")
-    public List<FilmDTO> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
-        return filmService.getPopularFilms(count);
+    public List<FilmDTO> getPopularFilmsByGenreAndYear(@RequestParam(required = false) Long genreId,
+                                                       @RequestParam(required = false) Integer year,
+                                                       @RequestParam(defaultValue = "10", required = false) int count) {
+        if (genreId != null) {
+            return filmService.getPopularFilmsByGenre(genreId, count);
+        } else if (year != null) {
+            return filmService.getPopularFilmsByYear(year, count);
+        } else if ((genreId != null) || (year != null)) {
+            return filmService.getPopularFilmsByGenreAndYear(genreId, year, count);
+        } else return filmService.getPopularFilms(count);
     }
 
     @GetMapping("/director/{directorId}")

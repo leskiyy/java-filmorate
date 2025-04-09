@@ -45,6 +45,8 @@ public class FilmRepository {
     private static final String DELETE_LIKE_ROW_QUERY = "DELETE FROM FILM_LIKES WHERE FILM_ID=? AND USER_ID=?";
     private static final String ADD_LIKE_ROW_QUERY = "INSERT INTO FILM_LIKES(FILM_ID, USER_ID) VALUES (?,?)";
     private static final String DELETE_BY_ID = "DELETE FROM FILMS WHERE FILM_ID = ?";
+    private static final String FIND_BY_USER_ID_LIKES = """
+            SELECT * FROM FILMS WHERE FILM_ID IN (SELECT FILM_ID FROM FILM_LIKES WHERE USER_ID = ?)""";
 
 
     public List<Film> findAll() {
@@ -145,6 +147,47 @@ public class FilmRepository {
         }
     }
 
+    public List<Film> findFilmByUserIdLike(long userId) {
+        return jdbc.query(FIND_BY_USER_ID_LIKES, filmRowMapper, userId);
+    }
+
+    public List<Film> getPopularFilmsByGenreAndYear(long genreId, int year, int count) {
+        String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
+                "FROM FILMS f " +
+                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                "JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID " +
+                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                "WHERE fg.GENRE_ID = ? AND YEAR(f.RELEASE_DATE) = ? " +
+                "GROUP BY f.FILM_ID " +
+                "ORDER BY COUNT(fl.USER_ID) DESC " +
+                "LIMIT ?";
+        return jdbc.query(sql, filmRowMapper, genreId, year, count);
+    }
+
+    public List<Film> getPopularFilmsByYear(int year, int count) {
+        String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
+                "FROM FILMS f " +
+                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                "WHERE YEAR(f.RELEASE_DATE) = ? " +
+                "GROUP BY f.FILM_ID " +
+                "ORDER BY COUNT(fl.USER_ID) DESC " +
+                "LIMIT ?";
+        return jdbc.query(sql, filmRowMapper, year, count);
+    }
+
+    public List<Film> getPopularFilmsByGenre(long genreId, int count) {
+        String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
+                "FROM FILMS f " +
+                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                "JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID " +
+                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                "WHERE fg.GENRE_ID = ? " +
+                "GROUP BY f.FILM_ID " +
+                "ORDER BY COUNT(fl.USER_ID) DESC " +
+                "LIMIT ?";
+        return jdbc.query(sql, filmRowMapper, genreId, count);
+    }
     public List<Director> updateDirectors(List<Director> directors, long id) {
         String sql = "DELETE FROM FILM_DIRECTORS " +
                     "WHERE FILM_ID=?";

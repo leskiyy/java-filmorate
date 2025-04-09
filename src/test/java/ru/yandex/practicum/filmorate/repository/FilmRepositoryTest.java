@@ -213,6 +213,18 @@ class FilmRepositoryTest {
 
     }
 
+    @Test
+    void findFilmByUserIdLike() {
+        List<Film> filmByUserIdLikeBefore = repository.findFilmByUserIdLike(1L);
+        assertThat(filmByUserIdLikeBefore).isEmpty();
+
+        addLike(1L, 1L);
+
+        List<Film> filmByUserIdLikeAfter = repository.findFilmByUserIdLike(1L);
+        assertThat(filmByUserIdLikeAfter).hasSize(1);
+        assertThat(filmByUserIdLikeAfter.getFirst().getId()).isEqualTo(1L);
+    }
+
     @BeforeEach
     void initDb() {
         jdbc.update("INSERT INTO PUBLIC.FILMS (FILM_ID,NAME,DESCRIPTION,RELEASE_DATE,DURATION,MPA_ID)\n" +

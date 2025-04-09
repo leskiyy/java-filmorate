@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.utils.SearchBy;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -225,12 +226,28 @@ class FilmRepositoryTest {
         assertThat(filmByUserIdLikeAfter.getFirst().getId()).isEqualTo(1L);
     }
 
+    @Test
+    void searchByTitle() {
+        List<Film> searched = repository.search("fi", SearchBy.TITLE);
+        assertThat(searched.size()).isEqualTo(1);
+        assertThat(searched.getFirst().getName()).contains("fi");
+    }
+
+    @Test
+    void searchByDirector() {
+        List<Film> searched = repository.search("Tar", SearchBy.DIRECTOR);
+        assertThat(searched.size()).isEqualTo(1);
+        assertThat(searched.getFirst().getId()).isEqualTo(1);
+    }
+
     @BeforeEach
     void initDb() {
         jdbc.update("INSERT INTO PUBLIC.FILMS (FILM_ID,NAME,DESCRIPTION,RELEASE_DATE,DURATION,MPA_ID)\n" +
                     "\tVALUES (1,'film','desc','2020-01-01',121,1)");
         jdbc.update("INSERT INTO PUBLIC.USERS (USER_ID,EMAIL,LOGIN,NAME,BIRTHDAY)\n" +
                     "\tVALUES (1,'email','login','name','2000-01-01')");
+        jdbc.update("INSERT INTO PUBLIC.DIRECTORS (DIRECTOR_ID,NAME) VALUES (1,'Quentin Tarantino')");
+        jdbc.update("INSERT INTO PUBLIC.FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) VALUES (1, 1)");
         jdbc.update("MERGE INTO FILM_GENRES(FILM_ID, GENRE_ID) VALUES(?,?)", 1L, 2);
         jdbc.update("MERGE INTO FILM_GENRES(FILM_ID, GENRE_ID) VALUES(?,?)", 1L, 6);
     }
@@ -238,8 +255,10 @@ class FilmRepositoryTest {
     @AfterEach
     void clearTables() {
         jdbc.update("DELETE FROM FILM_GENRES");
+        jdbc.update("DELETE FROM FILM_DIRECTORS");
         jdbc.update("DELETE FROM USERS");
         jdbc.update("DELETE FROM FILMS");
+        jdbc.update("DELETE FROM DIRECTORS");
     }
 
     private void addLike(long filmId, long userId) {

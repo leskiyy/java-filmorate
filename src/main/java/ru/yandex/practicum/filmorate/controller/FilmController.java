@@ -42,7 +42,6 @@ public class FilmController {
 
     @PostMapping
     public FilmDTO addFilm(@RequestBody FilmDTO film) {
-        log.info("Received film: {}", film);
         FilmDTO addedFilm = filmService.addFilm(film);
         log.info("Successfully add film {}", addedFilm);
         return addedFilm;
@@ -78,6 +77,13 @@ public class FilmController {
         } else if ((genreId != null) || (year != null)) {
             return filmService.getPopularFilmsByGenreAndYear(genreId, year, count);
         } else return filmService.getPopularFilms(count);
+    }
+
+    @GetMapping("/search")
+    public List<FilmDTO> search(@RequestParam String query, @RequestParam String by) {
+        List<FilmDTO> search = filmService.searchFilms(query, by.split(","));
+        log.info("Found {} films: query {} by {} ", search.size(), query, by);
+        return search;
     }
 
     @GetMapping("/director/{directorId}")

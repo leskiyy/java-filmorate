@@ -27,6 +27,7 @@ public class ReviewService {
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
     private final EventService eventService;
+    private final ValidationService validationService;
     private static final String METHOD_ADD = "ADD";
     private static final String METHOD_DELETE = "REMOVE";
     private static final String METHOD_UPDATE = "UPDATE";
@@ -41,16 +42,16 @@ public class ReviewService {
     }
 
     public ReviewDTO addReview(@Valid ReviewDTO review) {
-        validateUserByUserId(review.getUserId());
-        validateFilmByFilmId(review.getFilmId());
+        validationService.validateUserById(review.getUserId());
+        validationService.validateFilmById(review.getFilmId());
         Review save = reviewRepository.save(mapToReview(review));
         eventService.createReviewEvent(save.getUserId(), save.getId(), METHOD_ADD);
         return mapToDto(save, 0);
     }
 
     public ReviewDTO updateReview(@Valid ReviewDTO review) {
-        validateUserByUserId(review.getUserId());
-        validateFilmByFilmId(review.getFilmId());
+        validationService.validateUserById(review.getUserId());
+        validationService.validateFilmById(review.getFilmId());
         Review update = reviewRepository.update(mapToReview(review));
         eventService.createReviewEvent(update.getUserId(), update.getId(), METHOD_UPDATE);
         return mapToDto(update, reviewRepository.calculateUsefulByReviewId(update.getId()));
@@ -70,46 +71,34 @@ public class ReviewService {
 
 
     public List<ReviewDTO> getReviewsByFilmId(@Positive Long filmId, @Positive Integer count) {
-        validateFilmByFilmId(filmId);
+        validationService.validateFilmById(filmId);
         return reviewRepository.getReviewsByFilmId(filmId, count).stream()
                 .map(review -> mapToDto(review, reviewRepository.calculateUsefulByReviewId(review.getId())))
                 .toList();
     }
 
     public boolean addReviewLike(@Positive long id, @Positive long userId) {
-        validateReviewByReviewId(id);
-        validateUserByUserId(userId);
+        validationService.validateReviewById(id);
+        validationService.validateUserById(userId);
         return reviewRepository.addReviewLike(id, userId);
     }
 
     public boolean addReviewDislike(@Positive long id, @Positive long userId) {
-        validateReviewByReviewId(id);
-        validateUserByUserId(userId);
+        validationService.validateReviewById(id);
+        validationService.validateUserById(userId);
         return reviewRepository.addReviewDislike(id, userId);
     }
 
     public boolean deleteReviewLikeOrDislike(@Positive long id, @Positive long userId) {
-        validateReviewByReviewId(id);
-        validateUserByUserId(userId);
+        validationService.validateReviewById(id);
+        validationService.validateUserById(userId);
         return reviewRepository.deleteLikeDislikeRow(id, userId);
     }
 
     public boolean deleteReviewDislike(@Positive long id, @Positive long userId) {
-        validateReviewByReviewId(id);
-        validateUserByUserId(userId);
+        validationService.validateReviewById(id);
+        validationService.validateUserById(userId);
         return reviewRepository.deleteDislikeRow(id, userId);
     }
 
-    private void validateUserByUserId(long userId) {
-        if (!userRepository.existById(userId)) throw new NotFoundException("There is no user with id=" + userId);
-    }
-
-    private void validateFilmByFilmId(long filmId) {
-        if (!filmRepository.existById(filmId)) throw new NotFoundException("There is no film with id=" + filmId);
-    }
-
-    private void validateReviewByReviewId(long reviewId) {
-        if (!reviewRepository.existById(reviewId))
-            throw new NotFoundException("There is no review with id=" + reviewId);
-    }
 }

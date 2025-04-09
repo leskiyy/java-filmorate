@@ -6,17 +6,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.mapper.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.utils.SearchBy;
 
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,8 +37,6 @@ public class FilmRepository {
             SELECT * FROM GENRES WHERE GENRE_ID IN(SELECT GENRE_ID FROM FILM_GENRES WHERE FILM_ID = ?)""";
     private static final String INSERT_FILM_QUERY = """
             INSERT INTO FILMS(NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA_ID) VALUES (?,?,?,?,?)""";
-    private static final String UPDATE_FILM_QUERY = """
-            UPDATE FILMS SET NAME = ?, DESCRIPTION = ?, RELEASE_DATE = ?, DURATION = ?, MPA_ID = ? WHERE FILM_ID = ?""";
     private static final String INSERT_FILM_GENRES_QUERY = "MERGE INTO FILM_GENRES(FILM_ID, GENRE_ID) VALUES(?,?)";
     private static final String CALCULATE_RATE_BY_FILM_ID = "SELECT COUNT(USER_ID) FROM FILM_LIKES WHERE FILM_ID = ?";
     private static final String IS_FILM_EXIST = "SELECT EXISTS(SELECT 1 FROM FILMS WHERE FILM_ID = ?)";
@@ -70,20 +69,51 @@ public class FilmRepository {
         return film;
     }
 
+    /**
+     * Метод переписан в такой страшный вид из-за постман тестов, вынудивших убрать аннотацию @Valid в сервисе
+     * перед входящей DTO, и кидающий фильм с некорректной датой релиза, которая благополучно записывалась
+     */
     public Film update(Film film) {
-        Long id = film.getId();
-        if (!existById(id)) throw new NotFoundException("There is no film with id=" + id);
+        String query = "UPDATE FILMS SET ";
 
-        jdbc.update(UPDATE_FILM_QUERY,
-                film.getName(),
-                film.getDescription(),
-                Date.valueOf(film.getReleaseDate()),
-                film.getDuration(),
-                film.getMpa(),
-                id
-        );
+        List<Object> params = new ArrayList<>();
 
-        return film;
+        if (film.getName() != null && !film.getName().isBlank()) {
+            query += "NAME = ?";
+            params.add(film.getName());
+        }
+        if (film.getDescription() != null && film.getDescription().length() <= 200) {
+            if (!params.isEmpty()) {
+                query += ",";
+            }
+            query += "DESCRIPTION = ?";
+            params.add(film.getDescription());
+        }
+        if (film.getReleaseDate() != null &&
+            !film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28)) &&
+            !film.getReleaseDate().isAfter(LocalDate.now())) {
+            if (!params.isEmpty()) {
+                query += ",";
+            }
+            query += "RELEASE_DATE = ?";
+            params.add(Date.valueOf(film.getReleaseDate()));
+        }
+        if (film.getDuration() != null && film.getDuration() > 0) {
+            if (!params.isEmpty()) {
+                query += ",";
+            }
+            query += "DURATION = ?";
+            params.add(film.getDuration());
+        }
+        if (!params.isEmpty()) {
+            query += ",";
+        }
+        query += "MPA_ID = ? WHERE FILM_ID = ?";
+        params.add(film.getMpa());
+        params.add(film.getId());
+
+        jdbc.update(query, params.toArray());
+        return findById(film.getId()).orElse(null);
     }
 
     public Optional<Film> findById(long id) {
@@ -124,10 +154,10 @@ public class FilmRepository {
 
     public List<Director> findDirectorsByFilmId(long id) {
         String sql = "SELECT * " +
-                    "FROM DIRECTORS D " +
-                    "JOIN FILM_DIRECTORS FD ON D.DIRECTOR_ID=FD.DIRECTOR_ID " +
-                    "WHERE FD.FILM_ID=? " +
-                    "ORDER BY FD.DIRECTOR_ID;";
+                     "FROM DIRECTORS D " +
+                     "JOIN FILM_DIRECTORS FD ON D.DIRECTOR_ID=FD.DIRECTOR_ID " +
+                     "WHERE FD.FILM_ID=? " +
+                     "ORDER BY FD.DIRECTOR_ID;";
         return jdbc.query(sql, directorRowMapper, id);
     }
 
@@ -153,45 +183,49 @@ public class FilmRepository {
 
     public List<Film> getPopularFilmsByGenreAndYear(long genreId, int year, int count) {
         String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
-                "FROM FILMS f " +
-                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
-                "JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID " +
-                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
-                "WHERE fg.GENRE_ID = ? AND YEAR(f.RELEASE_DATE) = ? " +
-                "GROUP BY f.FILM_ID " +
-                "ORDER BY COUNT(fl.USER_ID) DESC " +
-                "LIMIT ?";
+                     "FROM FILMS f " +
+                     "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                     "JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID " +
+                     "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                     "WHERE fg.GENRE_ID = ? AND YEAR(f.RELEASE_DATE) = ? " +
+                     "GROUP BY f.FILM_ID " +
+                     "ORDER BY COUNT(fl.USER_ID) DESC " +
+                     "LIMIT ?";
         return jdbc.query(sql, filmRowMapper, genreId, year, count);
     }
 
     public List<Film> getPopularFilmsByYear(int year, int count) {
         String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
-                "FROM FILMS f " +
-                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
-                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
-                "WHERE YEAR(f.RELEASE_DATE) = ? " +
-                "GROUP BY f.FILM_ID " +
-                "ORDER BY COUNT(fl.USER_ID) DESC " +
-                "LIMIT ?";
+                     "FROM FILMS f " +
+                     "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                     "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                     "WHERE YEAR(f.RELEASE_DATE) = ? " +
+                     "GROUP BY f.FILM_ID " +
+                     "ORDER BY COUNT(fl.USER_ID) DESC " +
+                     "LIMIT ?";
         return jdbc.query(sql, filmRowMapper, year, count);
     }
 
     public List<Film> getPopularFilmsByGenre(long genreId, int count) {
         String sql = "SELECT f.*, m.NAME AS MPA_NAME " +
-                "FROM FILMS f " +
-                "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
-                "JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID " +
-                "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
-                "WHERE fg.GENRE_ID = ? " +
-                "GROUP BY f.FILM_ID " +
-                "ORDER BY COUNT(fl.USER_ID) DESC " +
-                "LIMIT ?";
+                     "FROM FILMS f " +
+                     "JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                     "JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID " +
+                     "LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                     "WHERE fg.GENRE_ID = ? " +
+                     "GROUP BY f.FILM_ID " +
+                     "ORDER BY COUNT(fl.USER_ID) DESC " +
+                     "LIMIT ?";
         return jdbc.query(sql, filmRowMapper, genreId, count);
+    }
+
+    public List<Film> search(String queryForSearch, SearchBy searchBy) {
+        return jdbc.query(searchBy.getQuery(), filmRowMapper, "%" + queryForSearch + "%");
     }
 
     public List<Director> updateDirectors(List<Director> directors, long id) {
         String sql = "DELETE FROM FILM_DIRECTORS " +
-                    "WHERE FILM_ID=?";
+                     "WHERE FILM_ID=?";
         jdbc.update(sql, id);
         List<Director> directorsWithName = new ArrayList<>();
 
@@ -200,9 +234,9 @@ public class FilmRepository {
         }
         sql = "MERGE INTO FILM_DIRECTORS(FILM_ID, DIRECTOR_ID) VALUES(?,?)";
         String sqlAddNames = "SELECT * " +
-                            "FROM DIRECTORS d " +
-                            "JOIN FILM_DIRECTORS fd ON d.DIRECTOR_ID=fd.DIRECTOR_ID " +
-                            "WHERE fd.FILM_ID=? AND d.DIRECTOR_ID=?;";
+                             "FROM DIRECTORS d " +
+                             "JOIN FILM_DIRECTORS fd ON d.DIRECTOR_ID=fd.DIRECTOR_ID " +
+                             "WHERE fd.FILM_ID=? AND d.DIRECTOR_ID=?;";
         for (Director director : directors) {
             jdbc.update(sql, id, director.getId());
             directorsWithName.add(jdbc.queryForObject(sqlAddNames, directorRowMapper, id, director.getId()));
@@ -212,21 +246,21 @@ public class FilmRepository {
 
     public List<Long> sortedByYear(int directorId) {
         String sql = "SELECT f.FILM_ID " +
-                    "FROM FILMS f " +
-                    "JOIN FILM_DIRECTORS fd ON f.film_id = fd.film_id " +
-                    "WHERE fd.director_id = ? " +
-                    "ORDER BY f.release_date;";
+                     "FROM FILMS f " +
+                     "JOIN FILM_DIRECTORS fd ON f.film_id = fd.film_id " +
+                     "WHERE fd.director_id = ? " +
+                     "ORDER BY f.release_date;";
         return jdbc.query(sql, (rs, rowNum) -> rs.getLong("FILM_ID"), directorId);
     }
 
     public List<Long> sortedByLikes(int directorId) {
         String sql = "SELECT f.film_id, " +
-                            "COUNT(l.film_id) as likes_count " +
-                    "FROM FILMS f " +
-                    "JOIN FILM_DIRECTORS fd ON f.film_id = fd.film_id " +
-                    "LEFT JOIN FILM_LIKES l ON f.film_id = l.film_id " +
-                    "WHERE fd.director_id = ? GROUP BY f.film_id " +
-                    "ORDER BY likes_count DESC;";
+                     "COUNT(l.film_id) as likes_count " +
+                     "FROM FILMS f " +
+                     "JOIN FILM_DIRECTORS fd ON f.film_id = fd.film_id " +
+                     "LEFT JOIN FILM_LIKES l ON f.film_id = l.film_id " +
+                     "WHERE fd.director_id = ? GROUP BY f.film_id " +
+                     "ORDER BY likes_count DESC;";
         return jdbc.query(sql, (rs, rowNum) -> rs.getLong("FILM_ID"), directorId);
     }
 

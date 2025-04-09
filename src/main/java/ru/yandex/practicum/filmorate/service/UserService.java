@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
@@ -19,6 +18,7 @@ public class UserService {
 
     private final UserRepository repository;
     private final EventService eventService;
+    private final ValidationService validationService;
     private static final String METHOD_ADD = "ADD";
     private static final String METHOD_REMOVE = "REMOVE";
 
@@ -27,7 +27,7 @@ public class UserService {
     }
 
     public User updateUser(@Valid User user) {
-        validateUser(user.getId());
+        validationService.validateUserById(user.getId());
         validateName(user);
         return repository.update(user);
     }
@@ -41,7 +41,7 @@ public class UserService {
         if (id == friendId) {
             throw new ValidationException("Can't add yourself as a friend");
         }
-        validateUser(id, friendId);
+        validationService.validateUserById(id, friendId);
         eventService.createFriendEvent(id, friendId, METHOD_ADD);
         return repository.addFriendshipRow(id, friendId);
     }
@@ -50,13 +50,13 @@ public class UserService {
         if (id == friendId) {
             throw new ValidationException("Can't delete yourself from friends");
         }
-        validateUser(id, friendId);
+        validationService.validateUserById(id, friendId);
         eventService.createFriendEvent(id, friendId, METHOD_REMOVE);
         return repository.deleteFriendshipRow(id, friendId);
     }
 
     public List<User> getFriendsByUserId(@Positive long id) {
-        validateUser(id);
+        validationService.validateUserById(id);
         return repository.getFriendsByUserId(id);
     }
 
@@ -64,7 +64,7 @@ public class UserService {
         if (id == otherId) {
             throw new ValidationException("Put different user ids");
         }
-        validateUser(id, otherId);
+        validationService.validateUserById(id, otherId);
         List<User> friendsByUserId1 = getFriendsByUserId(id);
         List<User> friendsByUserId2 = getFriendsByUserId(otherId);
         return friendsByUserId1.stream().filter(friendsByUserId2::contains).toList();
@@ -73,12 +73,6 @@ public class UserService {
     private void validateName(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
-        }
-    }
-
-    private void validateUser(long... ids) {
-        for (long id : ids) {
-            if (!repository.existById(id)) throw new NotFoundException("There is no user with id=" + id);
         }
     }
 }

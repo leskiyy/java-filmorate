@@ -29,7 +29,7 @@ public class FilmController {
     @GetMapping("/{id}")
     public FilmDTO getFilmById(@PathVariable long id) {
         FilmDTO film = filmService.getFilmById(id);
-        log.info("Successfully get film{}", film);
+        log.info("Successfully get film {}", film);
         return film;
     }
 

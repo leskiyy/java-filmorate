@@ -20,7 +20,8 @@ public class ErrorHandler {
         log.error(e.getMessage());
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(Map.of("NOT_FOUND", e.getMessage()));
+                .body(Map.of("NOT_FOUND", e.getMessage(), "error", "Для валидатора"));
+
     }
 
     @ExceptionHandler

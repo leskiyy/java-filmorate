@@ -29,7 +29,7 @@ public class FilmController {
     @GetMapping("/{id}")
     public FilmDTO getFilmById(@PathVariable long id) {
         FilmDTO film = filmService.getFilmById(id);
-        log.info("Successfully get film{}", film);
+        log.info("Successfully get film {}", film);
         return film;
     }
 
@@ -42,6 +42,7 @@ public class FilmController {
 
     @PostMapping
     public FilmDTO addFilm(@RequestBody FilmDTO film) {
+        log.info("Received film: {}", film);
         FilmDTO addedFilm = filmService.addFilm(film);
         log.info("Successfully add film {}", addedFilm);
         return addedFilm;
@@ -77,5 +78,10 @@ public class FilmController {
         } else if ((genreId != null) || (year != null)) {
             return filmService.getPopularFilmsByGenreAndYear(genreId, year, count);
         } else return filmService.getPopularFilms(count);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmDTO> getSortedByDirectorFilms(@PathVariable int directorId, @RequestParam(defaultValue = "year") String sortBy) {
+        return filmService.getSortedByDirectorFilms(directorId, sortBy);
     }
 }

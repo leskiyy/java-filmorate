@@ -7,15 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.repository.FilmRepository;
-import ru.yandex.practicum.filmorate.repository.GenreRepository;
-import ru.yandex.practicum.filmorate.repository.MpaRepository;
-import ru.yandex.practicum.filmorate.repository.UserRepository;
+import ru.yandex.practicum.filmorate.repository.*;
 import ru.yandex.practicum.filmorate.utils.FilmMapper;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -41,15 +40,16 @@ public class FilmService {
                     return FilmMapper.mapToDto(film,
                             filmRepository.findGenresByFilmId(film.getId()),
                             mpa,
-                            filmRepository.rateByFilmId(film.getId()));
+                            filmRepository.rateByFilmId(film.getId()), filmRepository.findDirectorsByFilmId(film.getId()));
                 })
                 .toList();
     }
 
-    public FilmDTO updateFilm(@Valid FilmDTO filmDto) {
+    public FilmDTO updateFilm(FilmDTO filmDto) {
         if (!filmRepository.existById(filmDto.getId())) {
             throw new NotFoundException("There is no film with id=" + filmDto.getId());
         }
+        filmDto.setDirectors(filmRepository.updateDirectors(filmDto.getDirectors(), filmDto.getId()));
         validateFilm(filmDto);
 
         filmRepository.update(FilmMapper.mapToFilm(filmDto));
@@ -65,6 +65,7 @@ public class FilmService {
         validateFilm(film);
         Film save = filmRepository.save(FilmMapper.mapToFilm(film));
         filmRepository.updateGenres(film.getGenres(), save.getId());
+        film.setDirectors(filmRepository.updateDirectors(film.getDirectors(), save.getId()));
         film.setId(save.getId());
         return film;
     }
@@ -97,8 +98,9 @@ public class FilmService {
         Integer mpaId = film.getMpa();
         Mpa mpa = mpaId == null ? null : mpaRepository.findById(film.getMpa()).orElse(null);
         List<Genre> genresByFilmId = filmRepository.findGenresByFilmId(id);
+        List<Director> directorsByFilmId = filmRepository.findDirectorsByFilmId(id);
         int rate = filmRepository.rateByFilmId(id);
-        return FilmMapper.mapToDto(film, genresByFilmId, mpa, rate);
+        return FilmMapper.mapToDto(film, genresByFilmId, mpa, rate, directorsByFilmId);
     }
 
     public List<FilmDTO> getCommonFilms(long userId, long friendId) {
@@ -110,7 +112,8 @@ public class FilmService {
                 .map(film -> FilmMapper.mapToDto(film,
                         filmRepository.findGenresByFilmId(film.getId()),
                         mpaRepository.findById(film.getMpa()).orElse(null),
-                        filmRepository.rateByFilmId(film.getId())))
+                        filmRepository.rateByFilmId(film.getId()),
+                        filmRepository.findDirectorsByFilmId(film.getId())))
                 .toList();
     }
 
@@ -120,7 +123,8 @@ public class FilmService {
                 .map(film -> FilmMapper.mapToDto(film,
                         filmRepository.findGenresByFilmId(film.getId()),
                         mpaRepository.findById(film.getMpa()).orElse(null),
-                        filmRepository.rateByFilmId(film.getId())))
+                        filmRepository.rateByFilmId(film.getId()),
+                        filmRepository.findDirectorsByFilmId(film.getId())))
                 .toList();
     }
 
@@ -130,7 +134,8 @@ public class FilmService {
                 .map(film -> FilmMapper.mapToDto(film,
                         filmRepository.findGenresByFilmId(film.getId()),
                         mpaRepository.findById(film.getMpa()).orElse(null),
-                        filmRepository.rateByFilmId(film.getId())))
+                        filmRepository.rateByFilmId(film.getId()),
+                        filmRepository.findDirectorsByFilmId(film.getId())))
                 .toList();
     }
 
@@ -140,7 +145,8 @@ public class FilmService {
                 .map(film -> FilmMapper.mapToDto(film,
                         filmRepository.findGenresByFilmId(film.getId()),
                         mpaRepository.findById(film.getMpa()).orElse(null),
-                        filmRepository.rateByFilmId(film.getId())))
+                        filmRepository.rateByFilmId(film.getId()),
+                        filmRepository.findDirectorsByFilmId(film.getId())))
                 .toList();
     }
 
@@ -158,15 +164,27 @@ public class FilmService {
             throw new NotFoundException("There is no mpa with id=" + film.getMpa().getId());
         }
         List<Genre> genres = film.getGenres();
-
-        if (genres == null) {
-            return;
-        }
-        for (Genre genre : genres) {
-            if (!genreRepository.existById(genre.getId())) {
-                throw new NotFoundException("There is no genre with id=" + genre.getId());
+        if (genres != null) {
+            for (Genre genre : genres) {
+                if (!genreRepository.existById(genre.getId())) {
+                    throw new NotFoundException("There is no genre with id=" + genre.getId());
+                }
             }
         }
+    }
+
+    public List<FilmDTO> getSortedByDirectorFilms(int directorId, String sortBy) {
+        List<Long> ids = new ArrayList<>();
+        if (sortBy.equals("year")) {
+            ids = filmRepository.sortedByYear(directorId);
+        } else if (sortBy.equals("likes")) {
+            ids = filmRepository.sortedByLikes(directorId);
+        }
+            List<FilmDTO> sortedFilms = new ArrayList<>();
+            for (Long filmId: ids) {
+                sortedFilms.add(getFilmById(filmId));
+            }
+            return sortedFilms;
     }
 
     private void validateUser(long... ids) {

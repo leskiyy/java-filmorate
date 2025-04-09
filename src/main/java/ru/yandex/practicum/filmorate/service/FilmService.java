@@ -112,7 +112,8 @@ public class FilmService {
                 .map(film -> FilmMapper.mapToDto(film,
                         filmRepository.findGenresByFilmId(film.getId()),
                         mpaRepository.findById(film.getMpa()).orElse(null),
-                        filmRepository.rateByFilmId(film.getId())))
+                        filmRepository.rateByFilmId(film.getId()),
+                        filmRepository.findDirectorsByFilmId(film.getId())))
                 .toList();
     }
 
@@ -122,7 +123,8 @@ public class FilmService {
                 .map(film -> FilmMapper.mapToDto(film,
                         filmRepository.findGenresByFilmId(film.getId()),
                         mpaRepository.findById(film.getMpa()).orElse(null),
-                        filmRepository.rateByFilmId(film.getId())))
+                        filmRepository.rateByFilmId(film.getId()),
+                        filmRepository.findDirectorsByFilmId(film.getId())))
                 .toList();
     }
 
@@ -132,7 +134,8 @@ public class FilmService {
                 .map(film -> FilmMapper.mapToDto(film,
                         filmRepository.findGenresByFilmId(film.getId()),
                         mpaRepository.findById(film.getMpa()).orElse(null),
-                        filmRepository.rateByFilmId(film.getId())))
+                        filmRepository.rateByFilmId(film.getId()),
+                        filmRepository.findDirectorsByFilmId(film.getId())))
                 .toList();
     }
 
@@ -142,7 +145,8 @@ public class FilmService {
                 .map(film -> FilmMapper.mapToDto(film,
                         filmRepository.findGenresByFilmId(film.getId()),
                         mpaRepository.findById(film.getMpa()).orElse(null),
-                        filmRepository.rateByFilmId(film.getId())))
+                        filmRepository.rateByFilmId(film.getId()),
+                        filmRepository.findDirectorsByFilmId(film.getId())))
                 .toList();
     }
 
@@ -167,8 +171,8 @@ public class FilmService {
                 }
             }
         }
-
     }
+
     public List<FilmDTO> getSortedByDirectorFilms(int directorId, String sortBy) {
         List<Long> ids = new ArrayList<>();
         if (sortBy.equals("year")) {
@@ -177,7 +181,7 @@ public class FilmService {
             ids = filmRepository.sortedByLikes(directorId);
         }
             List<FilmDTO> sortedFilms = new ArrayList<>();
-            for(Long filmId: ids) {
+            for (Long filmId: ids) {
                 sortedFilms.add(getFilmById(filmId));
             }
             return sortedFilms;

@@ -188,6 +188,7 @@ public class FilmRepository {
                 "LIMIT ?";
         return jdbc.query(sql, filmRowMapper, genreId, count);
     }
+
     public List<Director> updateDirectors(List<Director> directors, long id) {
         String sql = "DELETE FROM FILM_DIRECTORS " +
                     "WHERE FILM_ID=?";

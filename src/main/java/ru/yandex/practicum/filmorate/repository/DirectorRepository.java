@@ -28,7 +28,7 @@ public class DirectorRepository {
     private static final String IS_EXIST_QUERY = "SELECT COUNT(*) FROM DIRECTORS WHERE DIRECTOR_ID=?";
 
     public Optional<Director> findById(int id) {
-        if (!isDirectorExists(id)){
+        if (!isDirectorExists(id)) {
             throw new NotFoundException(String.format("Director with ID %d not found", id));
         }
         try {
@@ -55,15 +55,15 @@ public class DirectorRepository {
     }
 
     public Director updateDirector(Director director) {
-        if (!isDirectorExists(director.getId())){
+        if (!isDirectorExists(director.getId())) {
             throw new NotFoundException(String.format("Director with ID %d not found", director.getId()));
         }
         jdbc.update(UPDATE_DIRECTOR_QUERY, director.getName(), director.getId());
-        return jdbc.queryForObject("SELECT * FROM DIRECTORS ORDER BY director_id DESC LIMIT 1;", mapper);
+        return jdbc.queryForObject("SELECT * FROM DIRECTORS WHERE DIRECTOR_ID=?;", mapper, director.getId());
     }
 
     public void deleteDirector(int id) {
-        if (!isDirectorExists(id)){
+        if (!isDirectorExists(id)) {
             throw new NotFoundException(String.format("Director with ID %d not found", id));
         }
         jdbc.update(DELETE_DIRECTOR_QUERY, id);

@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -38,12 +39,12 @@ public class ValidationFilmTest {
         factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
 
-        validFilm = new FilmDTO(0L, NAME, DESCRIPTION, DATE, 1, 0, new Mpa(), null);
-        invalidNameFilm = new FilmDTO(0L, INVALID_NAME, DESCRIPTION, DATE, 1, 0, new Mpa(), null);
-        invalidDescriptionFilm = new FilmDTO(0L, NAME, INVALID_DESCRIPTION, DATE, 1, 0, new Mpa(), null);
-        invalidMinimumDateFilm = new FilmDTO(0L, NAME, DESCRIPTION, INVALID_PAST_DATE, 1, 0, new Mpa(), null);
-        invalidFutureDateFilm = new FilmDTO(0L, NAME, DESCRIPTION, INVALID_FUTURE_DATE, 1, 0, new Mpa(), null);
-        invalidDurationDateFilm = new FilmDTO(0L, NAME, DESCRIPTION, DATE, -1, 0, new Mpa(), null);
+        validFilm = new FilmDTO(0L, NAME, DESCRIPTION, DATE, 1, 0, new Mpa(), null, new ArrayList<>());
+        invalidNameFilm = new FilmDTO(0L, INVALID_NAME, DESCRIPTION, DATE, 1, 0, new Mpa(), null, new ArrayList<>());
+        invalidDescriptionFilm = new FilmDTO(0L, NAME, INVALID_DESCRIPTION, DATE, 1, 0, new Mpa(), null, new ArrayList<>());
+        invalidMinimumDateFilm = new FilmDTO(0L, NAME, DESCRIPTION, INVALID_PAST_DATE, 1, 0, new Mpa(), null, new ArrayList<>());
+        invalidFutureDateFilm = new FilmDTO(0L, NAME, DESCRIPTION, INVALID_FUTURE_DATE, 1, 0, new Mpa(), null, new ArrayList<>());
+        invalidDurationDateFilm = new FilmDTO(0L, NAME, DESCRIPTION, DATE, -1, 0, new Mpa(), null, new ArrayList<>());
     }
 
     @Test

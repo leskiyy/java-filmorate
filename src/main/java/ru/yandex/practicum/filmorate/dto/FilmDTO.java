@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.validator.MinimumDate;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,6 +52,6 @@ public class FilmDTO {
     private Mpa mpa;
 
     private List<Genre> genres;
-    private List<Director> directors;
+    private List<Director> directors = new ArrayList<>();
 
 }

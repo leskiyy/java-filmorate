@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.repository.*;
 import ru.yandex.practicum.filmorate.utils.FilmMapper;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +28,6 @@ public class FilmService {
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
-    private final DirectorRepository directorRepository;
 
     public List<FilmDTO> getAllFilms() {
         return filmRepository.findAll().stream()
@@ -41,10 +41,11 @@ public class FilmService {
                 .toList();
     }
 
-    public FilmDTO updateFilm(@Valid FilmDTO filmDto) {
+    public FilmDTO updateFilm(FilmDTO filmDto) {
         if (!filmRepository.existById(filmDto.getId())) {
             throw new NotFoundException("There is no film with id=" + filmDto.getId());
         }
+        filmDto.setDirectors(filmRepository.updateDirectors(filmDto.getDirectors(), filmDto.getId()));
         validateFilm(filmDto);
 
         filmRepository.update(FilmMapper.mapToFilm(filmDto));
@@ -61,7 +62,7 @@ public class FilmService {
         validateFilm(film);
         Film save = filmRepository.save(FilmMapper.mapToFilm(film));
         filmRepository.updateGenres(film.getGenres(), save.getId());
-        filmRepository.updateDirectors(film.getDirectors(), save.getId());
+        film.setDirectors(filmRepository.updateDirectors(film.getDirectors(), save.getId()));
         film.setId(save.getId());
         return film;
     }
@@ -118,13 +119,19 @@ public class FilmService {
                 }
             }
         }
-        List<Director> directors = film.getDirectors();
-        if (directors != null) {
-            for (Director director : directors) {
-                if (!directorRepository.isDirectorExists(director.getId())) {
-                    throw new NotFoundException("There is no director with id=" + director.getId());
-                }
-            }
+
+    }
+    public List<FilmDTO> getSortedByDirectorFilms(int directorId, String sortBy) {
+        List<Long> ids = new ArrayList<>();
+        if (sortBy.equals("year")) {
+            ids = filmRepository.sortedByYear(directorId);
+        } else if (sortBy.equals("likes")) {
+            ids = filmRepository.sortedByLikes(directorId);
         }
+            List<FilmDTO> sortedFilms = new ArrayList<>();
+            for(Long filmId: ids) {
+                sortedFilms.add(getFilmById(filmId));
+            }
+            return sortedFilms;
     }
 }

@@ -42,6 +42,7 @@ public class FilmController {
 
     @PostMapping
     public FilmDTO addFilm(@RequestBody FilmDTO film) {
+        log.info("Received film: {}", film);
         FilmDTO addedFilm = filmService.addFilm(film);
         log.info("Successfully add film {}", addedFilm);
         return addedFilm;
@@ -62,5 +63,10 @@ public class FilmController {
     @GetMapping("/popular")
     public List<FilmDTO> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
         return filmService.getPopularFilms(count);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmDTO> getSortedByDirectorFilms(@PathVariable int directorId, @RequestParam(defaultValue = "year") String sortBy) {
+        return filmService.getSortedByDirectorFilms(directorId, sortBy);
     }
 }

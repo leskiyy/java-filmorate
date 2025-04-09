@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import ru.yandex.practicum.filmorate.mapper.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.mapper.FilmRowMapper;
 import ru.yandex.practicum.filmorate.mapper.GenreRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -28,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({FilmRepository.class, FilmRowMapper.class, GenreRowMapper.class})
+@Import({FilmRepository.class, FilmRowMapper.class, GenreRowMapper.class, DirectorRowMapper.class})
 class FilmRepositoryTest {
 
     private final FilmRepository repository;

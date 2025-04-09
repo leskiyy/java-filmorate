@@ -52,7 +52,6 @@ public class DirectorRepository {
 
     public void addFilmDirector(Director director, Film film) {
         jdbc.update(ADD_FILM_DIRECTOR_QUERY, film.getId(), director.getId());
-        //return jdbc.queryForObject("SELECT * FROM FILMS ORDER BY FILM_ID DESC LIMIT 1;", mapper);
     }
 
     public Director updateDirector(Director director) {

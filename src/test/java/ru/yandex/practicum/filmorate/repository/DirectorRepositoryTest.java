@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.mapper.DirectorRowMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.repository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
@@ -14,9 +15,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.utils.SearchBy;
 
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -264,4 +263,38 @@ public class FilmRepository {
         return jdbc.query(sql, (rs, rowNum) -> rs.getLong("FILM_ID"), directorId);
     }
 
+    public List<Film> getRecommendations(long userId) {
+        String bestMatchUserIdsQuery = """
+                SELECT USER_ID
+                FROM FILM_LIKES
+                WHERE FILM_ID IN (SELECT FILM_ID FROM FILM_LIKES WHERE USER_ID = ?) AND NOT USER_ID = ?
+                GROUP BY USER_ID
+                ORDER BY COUNT(USER_ID) DESC
+                """;
+        String recommendationsQuery = """
+                SELECT * FROM FILMS
+                WHERE FILM_ID IN(
+                	SELECT FILM_ID
+                	FROM FILM_LIKES WHERE USER_ID = ?
+                	EXCEPT
+                	SELECT FILM_ID
+                	FROM FILM_LIKES WHERE USER_ID = ?)
+                """;
+        List<Film> result = new ArrayList<>();
+        jdbc.query(bestMatchUserIdsQuery, new ResultSetExtractor<Void>() {
+            @Override
+            public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
+                while (rs.next()) {
+                    long matchUserId = rs.getLong("USER_ID");
+                    List<Film> recommendations = jdbc.query(recommendationsQuery, filmRowMapper, matchUserId, userId);
+                    if (!recommendations.isEmpty()) {
+                        result.addAll(recommendations);
+                        return null;
+                    }
+                }
+                return null;
+            }
+        }, userId, userId);
+        return result;
+    }
 }

@@ -154,4 +154,12 @@ public class FilmService {
                 filmRepository.rateByFilmId(film.getId()),
                 filmRepository.findDirectorsByFilmId(film.getId()));
     }
+
+    public List<FilmDTO> getRecommendations(long userId) {
+        validationService.validateUserById(userId);
+        List<Film> recommendations = filmRepository.getRecommendations(userId);
+        return recommendations.stream()
+                .map(this::toDTO)
+                .toList();
+    }
 }

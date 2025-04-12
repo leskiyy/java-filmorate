@@ -77,4 +77,15 @@ public class UserController {
     public List<FilmDTO> getRecommendations(@PathVariable long id) {
         return filmService.getRecommendations(id);
     }
+
+    @DeleteMapping("/{userId}")
+    public Map<String, String> deleteUserById(@PathVariable long userId) {
+        boolean isSuccess = userService.deleteUserById(userId);
+        return isSuccess ? deleteUserSuccessAnswer(userId) : deleteUserFailAnswer(userId);
+    }
+
+    @GetMapping("/{userId}")
+    public User getUserById(@PathVariable long userId) {
+        return userService.getUserById(userId);
+    }
 }

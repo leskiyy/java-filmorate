@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import ru.yandex.practicum.filmorate.exceptions.DeletedUserException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 
@@ -40,5 +41,12 @@ public class ErrorHandler {
                 .body(Map.of("BAD_REQUEST", e.getMessage()));
     }
 
+    @ExceptionHandler
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(final DeletedUserException e) {
+        log.error(e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("NOT_FOUND", e.getMessage()));
+    }
 
 }

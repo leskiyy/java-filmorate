@@ -42,8 +42,8 @@ public class FilmService {
 
         filmRepository.updateGenres(filmDto.getGenres(), filmDto.getId());
         filmDto.setDirectors(filmRepository.updateDirectors(filmDto.getDirectors(), filmDto.getId()));
-        int rate = filmRepository.rateByFilmId(filmDto.getId());
-        return filmDto.setRate(rate);
+
+        return getFilmById(filmDto.getId());
     }
 
     public FilmDTO addFilm(@Valid FilmDTO film) {
@@ -54,17 +54,17 @@ public class FilmService {
         filmRepository.updateGenres(film.getGenres(), save.getId());
         film.setDirectors(filmRepository.updateDirectors(film.getDirectors(), save.getId()));
         film.setId(save.getId());
-        return film;
+        return getFilmById(save.getId());
     }
 
-    public boolean addFilmLike(@Positive long id, @Positive long userId) {
+    public boolean addFilmLike(long id, long userId) {
         validationService.validateFilmById(id);
         validationService.validateUserById(userId);
         eventService.createLikeEvent(userId, id, METHOD_ADD);
         return filmRepository.addLike(id, userId);
     }
 
-    public boolean deleteFilmLike(@Positive long id, @Positive long userId) {
+    public boolean deleteFilmLike(long id, long userId) {
         validationService.validateFilmById(id);
         validationService.validateUserById(userId);
         eventService.createLikeEvent(userId, id, METHOD_REMOVE);
@@ -133,6 +133,7 @@ public class FilmService {
     }
 
     public List<FilmDTO> getSortedByDirectorFilms(int directorId, String sortBy) {
+        validationService.validateDirectorById(directorId);
         List<Long> ids = new ArrayList<>();
         if (sortBy.equals("year")) {
             ids = filmRepository.sortedByYear(directorId);
@@ -161,5 +162,9 @@ public class FilmService {
         return recommendations.stream()
                 .map(this::toDTO)
                 .toList();
+    }
+
+    public boolean deleteFilmById(long filmId) {
+        return filmRepository.deleteById(filmId);
     }
 }

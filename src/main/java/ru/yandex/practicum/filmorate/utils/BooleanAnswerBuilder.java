@@ -29,6 +29,10 @@ public class BooleanAnswerBuilder {
             "Like or dislike to review id=%d can't be deleted by user id=%d";
     private final String deleteDislikeToReviewSuccess = "Dislike to review id=%d was deleted by user id=%d";
     private final String deleteDislikeToReviewFail = "Dislike to review id=%d can't be deleted by user id=%d";
+    private final String deleteFilmSuccess = "Film id=%d was deleted";
+    private final String deleteFilmFail = "Film id=%d can't be deleted";
+    private final String deleteUserSuccess = "User id=%d was deleted";
+    private final String deleteUserFail = "User id=%d can't be deleted";
 
 
     public Map<String, String> addLikeSuccessAnswer(long id, long userId) {
@@ -101,5 +105,21 @@ public class BooleanAnswerBuilder {
 
     public Map<String, String> deleteReviewDislikeFailAnswer(long id, long userId) {
         return Map.of(fail, String.format(deleteDislikeToReviewFail, id, userId));
+    }
+
+    public Map<String, String> deleteFilmSuccessAnswer(long id) {
+        return Map.of(success, String.format(deleteFilmSuccess, id));
+    }
+
+    public Map<String, String> deleteFilmFailAnswer(long id) {
+        return Map.of(fail, String.format(deleteFilmFail, id));
+    }
+
+    public Map<String, String> deleteUserSuccessAnswer(long id) {
+        return Map.of(success, String.format(deleteUserSuccess, id));
+    }
+
+    public Map<String, String> deleteUserFailAnswer(long id) {
+        return Map.of(fail, String.format(deleteUserFail, id));
     }
 }

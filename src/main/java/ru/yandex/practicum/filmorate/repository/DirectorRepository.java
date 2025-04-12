@@ -16,23 +16,17 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class DirectorRepository {
+
     private final JdbcTemplate jdbc;
     private final DirectorRowMapper mapper;
-
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM DIRECTORS WHERE DIRECTOR_ID = ?";
-    private static final String FIND_ALL_QUERY = "SELECT * FROM DIRECTORS";
-    private static final String ADD_DIRECTOR_QUERY = "INSERT INTO DIRECTORS (NAME) VALUES (?)";
-    private static final String ADD_FILM_DIRECTOR_QUERY = "INSERT INTO FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) VALUES (?, ?)";
-    private static final String UPDATE_DIRECTOR_QUERY = "UPDATE DIRECTORS SET NAME=? WHERE DIRECTOR_ID=?";
-    private static final String DELETE_DIRECTOR_QUERY = "DELETE FROM DIRECTORS WHERE DIRECTOR_ID=?";
-    private static final String IS_EXIST_QUERY = "SELECT COUNT(*) FROM DIRECTORS WHERE DIRECTOR_ID=?";
 
     public Optional<Director> findById(int id) {
         if (!isDirectorExists(id)) {
             throw new NotFoundException(String.format("Director with ID %d not found", id));
         }
         try {
-            Director director = jdbc.queryForObject(FIND_BY_ID_QUERY, mapper, id);
+            String findByIdQuery = "SELECT * FROM DIRECTORS WHERE DIRECTOR_ID = ?";
+            Director director = jdbc.queryForObject(findByIdQuery, mapper, id);
             return Optional.ofNullable(director);
         } catch (DataAccessException e) {
             return Optional.empty();
@@ -40,25 +34,29 @@ public class DirectorRepository {
     }
 
     public List<Director> findAll() {
-        List<Director> query = jdbc.query(FIND_ALL_QUERY, mapper);
+        String findAllQuery = "SELECT * FROM DIRECTORS";
+        List<Director> query = jdbc.query(findAllQuery, mapper);
         query.sort(Comparator.comparingInt(Director::getId));
         return query;
     }
 
     public Director addDirector(Director director) {
-        jdbc.update(ADD_DIRECTOR_QUERY, director.getName());
+        String addDirectorQuery = "INSERT INTO DIRECTORS (NAME) VALUES (?)";
+        jdbc.update(addDirectorQuery, director.getName());
         return jdbc.queryForObject("SELECT * FROM DIRECTORS ORDER BY director_id DESC LIMIT 1;", mapper);
     }
 
     public void addFilmDirector(Director director, Film film) {
-        jdbc.update(ADD_FILM_DIRECTOR_QUERY, film.getId(), director.getId());
+        String addFilmDirectorQuery = "INSERT INTO FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) VALUES (?, ?)";
+        jdbc.update(addFilmDirectorQuery, film.getId(), director.getId());
     }
 
     public Director updateDirector(Director director) {
         if (!isDirectorExists(director.getId())) {
             throw new NotFoundException(String.format("Director with ID %d not found", director.getId()));
         }
-        jdbc.update(UPDATE_DIRECTOR_QUERY, director.getName(), director.getId());
+        String updateDirectorQuery = "UPDATE DIRECTORS SET NAME=? WHERE DIRECTOR_ID=?";
+        jdbc.update(updateDirectorQuery, director.getName(), director.getId());
         return jdbc.queryForObject("SELECT * FROM DIRECTORS WHERE DIRECTOR_ID=?;", mapper, director.getId());
     }
 
@@ -66,11 +64,13 @@ public class DirectorRepository {
         if (!isDirectorExists(id)) {
             throw new NotFoundException(String.format("Director with ID %d not found", id));
         }
-        jdbc.update(DELETE_DIRECTOR_QUERY, id);
+        String deleteDirectorQuery = "DELETE FROM DIRECTORS WHERE DIRECTOR_ID=?";
+        jdbc.update(deleteDirectorQuery, id);
     }
 
     public boolean isDirectorExists(int id) {
-        return jdbc.queryForObject(IS_EXIST_QUERY, Integer.class, id) > 0;
+        String isExistQuery = "SELECT COUNT(*) FROM DIRECTORS WHERE DIRECTOR_ID=?";
+        return jdbc.queryForObject(isExistQuery, Integer.class, id) > 0;
     }
 
 }

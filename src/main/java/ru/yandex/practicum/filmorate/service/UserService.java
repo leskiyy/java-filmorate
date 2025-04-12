@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
@@ -37,7 +38,7 @@ public class UserService {
         return repository.save(user);
     }
 
-    public boolean addFriend(@Positive long id, @Positive long friendId) {
+    public boolean addFriend(long id, long friendId) {
         if (id == friendId) {
             throw new ValidationException("Can't add yourself as a friend");
         }
@@ -74,5 +75,14 @@ public class UserService {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
+    }
+
+    public boolean deleteUserById(long userId) {
+        return repository.deleteById(userId);
+    }
+
+    public User getUserById(long userId) {
+        return repository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("There is no user with id=" + userId));
     }
 }

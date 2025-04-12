@@ -70,12 +70,12 @@ public class FilmController {
     public List<FilmDTO> getPopularFilmsByGenreAndYear(@RequestParam(required = false) Long genreId,
                                                        @RequestParam(required = false) Integer year,
                                                        @RequestParam(defaultValue = "10", required = false) int count) {
-        if (genreId != null) {
+        if ((genreId != null) && (year != null)) {
+            return filmService.getPopularFilmsByGenreAndYear(genreId, year, count);
+        } else if (genreId != null) {
             return filmService.getPopularFilmsByGenre(genreId, count);
         } else if (year != null) {
             return filmService.getPopularFilmsByYear(year, count);
-        } else if ((genreId != null) || (year != null)) {
-            return filmService.getPopularFilmsByGenreAndYear(genreId, year, count);
         } else return filmService.getPopularFilms(count);
     }
 
@@ -89,5 +89,11 @@ public class FilmController {
     @GetMapping("/director/{directorId}")
     public List<FilmDTO> getSortedByDirectorFilms(@PathVariable int directorId, @RequestParam(defaultValue = "year") String sortBy) {
         return filmService.getSortedByDirectorFilms(directorId, sortBy);
+    }
+
+    @DeleteMapping("/{filmId}")
+    public Map<String, String> deleteFilmById(@PathVariable long filmId) {
+        boolean isSuccess = filmService.deleteFilmById(filmId);
+        return isSuccess ? deleteFilmSuccessAnswer(filmId) : deleteFilmFailAnswer(filmId);
     }
 }

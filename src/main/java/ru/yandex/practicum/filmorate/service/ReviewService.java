@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.ReviewRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,6 +67,7 @@ public class ReviewService {
     public List<ReviewDTO> getAllReviews() {
         return reviewRepository.findAll().stream()
                 .map(review -> mapToDto(review, reviewRepository.calculateUsefulByReviewId(review.getId())))
+                .sorted(Comparator.comparingInt(ReviewDTO::getUseful).reversed())
                 .toList();
     }
 
@@ -74,6 +76,7 @@ public class ReviewService {
         validationService.validateFilmById(filmId);
         return reviewRepository.getReviewsByFilmId(filmId, count).stream()
                 .map(review -> mapToDto(review, reviewRepository.calculateUsefulByReviewId(review.getId())))
+                .sorted(Comparator.comparingInt(ReviewDTO::getUseful).reversed())
                 .toList();
     }
 

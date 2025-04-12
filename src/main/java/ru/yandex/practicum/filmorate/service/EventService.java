@@ -24,8 +24,10 @@ import java.util.stream.Collectors;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final ValidationService validationService;
 
     public List<EventDTO> getUserFeed(@Positive long userId) {
+        validationService.validateUserById(userId);
         return eventRepository.getByUserId(userId).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());

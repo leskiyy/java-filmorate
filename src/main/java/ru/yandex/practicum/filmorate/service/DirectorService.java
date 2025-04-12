@@ -1,8 +1,10 @@
 package ru.yandex.practicum.filmorate.service;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Validated
 @RequiredArgsConstructor
 public class DirectorService {
     private final DirectorRepository repository;
@@ -29,7 +32,7 @@ public class DirectorService {
         }
     }
 
-    public Director addDirector(Director director) {
+    public Director addDirector(@Valid Director director) {
         return repository.addDirector(director);
     }
 
@@ -41,7 +44,7 @@ public class DirectorService {
         repository.deleteDirector(id);
     }
 
-    public Director updateDirector(Director director) {
+    public Director updateDirector(@Valid Director director) {
         return repository.updateDirector(director);
     }
 }

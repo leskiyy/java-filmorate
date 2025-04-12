@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.MpaRepository;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
 import ru.yandex.practicum.filmorate.utils.FilmMapper;
 import ru.yandex.practicum.filmorate.utils.SearchBy;
 
@@ -21,6 +22,7 @@ import java.util.*;
 public class FilmService {
 
     private final FilmRepository filmRepository;
+    private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
     private final EventService eventService;
     private final ValidationService validationService;
@@ -144,6 +146,13 @@ public class FilmService {
             sortedFilms.add(getFilmById(filmId));
         }
         return sortedFilms;
+    }
+
+    public List<FilmDTO> getRecommendedFilms(long userId) {
+//        long userWithCommonLikes = userRepository.findUserWithCommonLikes(userId);
+        return filmRepository.getRecommendedFilms(userId).stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     private FilmDTO toDTO(Film film) {

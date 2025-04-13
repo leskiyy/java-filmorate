@@ -6,9 +6,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import ru.yandex.practicum.filmorate.exceptions.DeletedUserException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.model.User;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -40,5 +44,12 @@ public class ErrorHandler {
                 .body(Map.of("BAD_REQUEST", e.getMessage()));
     }
 
+    @ExceptionHandler
+    public ResponseEntity<List<User>> handleFriendNotFound(final DeletedUserException e) {
+        log.error(e.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ArrayList<>());
 
+    }
 }

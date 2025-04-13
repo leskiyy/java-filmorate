@@ -69,4 +69,16 @@ public class UserController {
     public List<EventDTO> getFeedByUserId(@PathVariable long id) {
         return eventService.getUserFeed(id);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteUserById(@PathVariable long id) {
+        userService.deleteUserById(id);
+    }
+
+    @GetMapping("/{id}")
+    public void getUserById(@PathVariable long id) {
+        userService.getUserById(id);
+    }
+
+
 }

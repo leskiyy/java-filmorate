@@ -154,4 +154,8 @@ public class FilmService {
                 filmRepository.rateByFilmId(film.getId()),
                 filmRepository.findDirectorsByFilmId(film.getId()));
     }
+
+    public void deleteFilmById(long id) {
+        filmRepository.deleteFilmById(id);
+    }
 }

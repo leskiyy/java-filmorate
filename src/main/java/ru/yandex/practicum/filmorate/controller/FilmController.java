@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -89,5 +90,12 @@ public class FilmController {
     @GetMapping("/director/{directorId}")
     public List<FilmDTO> getSortedByDirectorFilms(@PathVariable int directorId, @RequestParam(defaultValue = "year") String sortBy) {
         return filmService.getSortedByDirectorFilms(directorId, sortBy);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteFilmById(@PathVariable long id) {
+        filmService.deleteFilmById(id);
+        log.info("Successfully deleted film with ID={}", id);
     }
 }

@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDTO;
+import ru.yandex.practicum.filmorate.exceptions.DeletedUserException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.*;
@@ -27,6 +28,11 @@ public class ValidationService {
         for (long id : ids) {
             if (!userRepository.existById(id)) throw new NotFoundException("There is no user with id=" + id);
         }
+    }
+
+    public void validateForFriends(long id) {
+        if (userRepository.isUserDeleted(id)) throw new DeletedUserException("User with ID=" + id + " is deleted");
+        validateUserById(id);
     }
 
     public void validateFilmById(long... ids) {

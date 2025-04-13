@@ -292,4 +292,10 @@ public class FilmRepository {
         return jdbc.query(sql, filmRowMapper, userId, userId, userId);
     }
 
+    public void deleteFilmById(long id) {
+        String sql = "DELETE FROM FILMS " +
+                "WHERE film_id = ?;";
+        jdbc.update(sql, id);
+    }
+
 }

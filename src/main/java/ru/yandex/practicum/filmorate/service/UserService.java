@@ -56,7 +56,7 @@ public class UserService {
     }
 
     public List<User> getFriendsByUserId(@Positive long id) {
-        validationService.validateUserById(id);
+        validationService.validateForFriends(id);
         return repository.getFriendsByUserId(id);
     }
 
@@ -74,5 +74,14 @@ public class UserService {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
+    }
+
+    public void deleteUserById(long id) {
+        repository.deleteUserById(id);
+    }
+
+    public User getUserById(long id) {
+        validationService.validateUserById(id);
+        return repository.getUserById(id);
     }
 }

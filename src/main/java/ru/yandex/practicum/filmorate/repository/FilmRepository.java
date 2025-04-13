@@ -264,6 +264,34 @@ public class FilmRepository {
         return jdbc.query(sql, (rs, rowNum) -> rs.getLong("FILM_ID"), directorId);
     }
 
+    public List<Film> getRecommendedFilms(long userId) {
+        String sql = "SELECT f.*, m.NAME AS mpa_name, " +
+                "(SELECT STRING_AGG(g.NAME, ', ') " +
+                " FROM FILM_GENRES fg " +
+                " JOIN GENRES g ON fg.GENRE_ID = g.GENRE_ID " +
+                " WHERE fg.FILM_ID = f.FILM_ID) AS genres " +
+                "FROM FILMS f " +
+                "LEFT JOIN MPA m ON f.MPA_ID = m.MPA_ID " +
+                "JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID " +
+                "WHERE fl.USER_ID IN (" +
+                "    SELECT fl2.USER_ID " +
+                "    FROM FILM_LIKES fl1 " +
+                "    JOIN FILM_LIKES fl2 ON fl1.FILM_ID = fl2.FILM_ID " +
+                "    WHERE fl1.USER_ID = ? AND fl2.USER_ID != ? " +
+                "    GROUP BY fl2.USER_ID " +
+                "    ORDER BY COUNT(*) DESC " +
+                "    LIMIT 10" +
+                ") " +
+                "AND f.FILM_ID NOT IN (" +
+                "    SELECT FILM_ID FROM FILM_LIKES WHERE USER_ID = ?" +
+                ") " +
+                "GROUP BY f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_ID, m.NAME " +
+                "ORDER BY COUNT(*) DESC " +
+                "LIMIT 20";
+
+        return jdbc.query(sql, filmRowMapper, userId, userId, userId);
+    }
+
     public void deleteFilmById(long id) {
         String sql = "DELETE FROM FILMS " +
                 "WHERE film_id = ?;";

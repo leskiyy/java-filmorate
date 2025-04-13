@@ -73,20 +73,19 @@ public class UserController {
         return eventService.getUserFeed(id);
     }
 
-    @DeleteMapping("/{id}")
-    public void deleteUserById(@PathVariable long id) {
-        userService.deleteUserById(id);
-    }
-
-    @GetMapping("/{id}")
-    public void getUserById(@PathVariable long id) {
-        userService.getUserById(id);
-    }
-
-
-
     @GetMapping("/{id}/recommendations")
-    public List<FilmDTO> getRecommendedFilms(@PathVariable long id) {
-        return filmService.getRecommendedFilms(id);
+    public List<FilmDTO> getRecommendations(@PathVariable long id) {
+        return filmService.getRecommendations(id);
+    }
+
+    @DeleteMapping("/{userId}")
+    public Map<String, String> deleteUserById(@PathVariable long userId) {
+        boolean isSuccess = userService.deleteUserById(userId);
+        return isSuccess ? deleteUserSuccessAnswer(userId) : deleteUserFailAnswer(userId);
+    }
+
+    @GetMapping("/{userId}")
+    public User getUserById(@PathVariable long userId) {
+        return userService.getUserById(userId);
     }
 }

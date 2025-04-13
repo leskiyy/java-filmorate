@@ -24,30 +24,17 @@ public class UserRepository {
     private final JdbcTemplate jdbc;
     private final UserRowMapper mapper;
 
-    private static final String FIND_ALL_QUERY = "SELECT * FROM USERS";
-    private static final String FIND_BY_ID_QUERY = "SELECT * FROM USERS WHERE USER_ID = ?";
-    private static final String INSERT_QUERY = "INSERT INTO USERS(EMAIL, LOGIN, NAME, BIRTHDAY) VALUES (?,?,?,?)";
-    private static final String UPDATE_QUERY = """
-            UPDATE USERS SET EMAIL = ?, LOGIN = ?, NAME = ?, BIRTHDAY = ? WHERE USER_ID = ?""";
-    private static final String IS_EXIST_BY_ID_QUERY = "SELECT EXISTS(SELECT 1 FROM USERS WHERE USER_ID = ?)";
-    private static final String ADD_FRIENDSHIP_ROW_QUERY = """
-            INSERT INTO FRIENDS(USER_ID, FRIEND_ID) VALUES (?,?)""";
-    private static final String DELETE_FRIENDSHIP_QUERY = """
-            DELETE FROM FRIENDS WHERE USER_ID=? AND FRIEND_ID=?""";
-    private static final String FIND_FRIENDS_BY_USER_ID_QUERY = """
-            SELECT * FROM USERS WHERE USER_ID IN (
-                SELECT FRIEND_ID FROM FRIENDS WHERE USER_ID = ?)""";
-    private static final String DELETE_BY_ID = "DELETE FROM USERS WHERE USER_ID = ?";
-
     public List<User> findAll() {
-        return jdbc.query(FIND_ALL_QUERY, mapper);
+        String findAllQuery = "SELECT * FROM USERS";
+        return jdbc.query(findAllQuery, mapper);
     }
 
     public User save(User user) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
+        String insertQuery = "INSERT INTO USERS(EMAIL, LOGIN, NAME, BIRTHDAY) VALUES (?,?,?,?)";
 
         jdbc.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(INSERT_QUERY, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, user.getEmail());
             ps.setString(2, user.getLogin());
             ps.setString(3, user.getName());
@@ -59,7 +46,10 @@ public class UserRepository {
     }
 
     public boolean deleteById(long id) {
-        int updatedRows = jdbc.update(DELETE_BY_ID, id);
+        jdbc.update("MERGE INTO DELETED_USER_IDS(DELETED_USER_ID) VALUES (?)", id);
+
+        String deleteById = "DELETE FROM USERS WHERE USER_ID = ?";
+        int updatedRows = jdbc.update(deleteById, id);
         return updatedRows > 0;
     }
 
@@ -67,7 +57,10 @@ public class UserRepository {
         Long id = user.getId();
         if (!existById(id)) throw new NotFoundException("There is no user with id=" + id);
 
-        jdbc.update(UPDATE_QUERY,
+        String updateQuery = """
+                UPDATE USERS SET EMAIL = ?, LOGIN = ?, NAME = ?, BIRTHDAY = ?
+                WHERE USER_ID = ?""";
+        jdbc.update(updateQuery,
                 user.getEmail(),
                 user.getLogin(),
                 user.getName(),
@@ -78,7 +71,8 @@ public class UserRepository {
 
     public Optional<User> findById(long id) {
         try {
-            User user = jdbc.queryForObject(FIND_BY_ID_QUERY, mapper, id);
+            String findByIdQuery = "SELECT * FROM USERS WHERE USER_ID = ?";
+            User user = jdbc.queryForObject(findByIdQuery, mapper, id);
             return Optional.ofNullable(user);
         } catch (DataAccessException e) {
             return Optional.empty();
@@ -86,12 +80,21 @@ public class UserRepository {
     }
 
     public boolean existById(long id) {
-        return jdbc.queryForObject(IS_EXIST_BY_ID_QUERY, Boolean.class, id);
+        String isExistByIdQuery = "SELECT EXISTS(SELECT 1 FROM USERS WHERE USER_ID = ?)";
+        return jdbc.queryForObject(isExistByIdQuery, Boolean.class, id);
+    }
+
+    public boolean existDeletedUserById(long id) {
+        String query = "SELECT EXISTS(SELECT 1 FROM DELETED_USER_IDS WHERE DELETED_USER_ID = ?)";
+        return jdbc.queryForObject(query, Boolean.class, id);
     }
 
     public boolean addFriendshipRow(long id, long friendId) {
+        String addFriendshipRowQuery = """
+                INSERT INTO FRIENDS(USER_ID, FRIEND_ID)
+                VALUES (?,?)""";
         try {
-            jdbc.update(ADD_FRIENDSHIP_ROW_QUERY, id, friendId);
+            jdbc.update(addFriendshipRowQuery, id, friendId);
             return true;
         } catch (DataAccessException e) {
             return false;
@@ -99,12 +102,16 @@ public class UserRepository {
     }
 
     public boolean deleteFriendshipRow(long id, long friendId) {
-        int deletedRows = jdbc.update(DELETE_FRIENDSHIP_QUERY, id, friendId);
+        String deleteFriendshipQuery = "DELETE FROM FRIENDS WHERE USER_ID=? AND FRIEND_ID=?";
+        int deletedRows = jdbc.update(deleteFriendshipQuery, id, friendId);
         return deletedRows > 0;
     }
 
     public List<User> getFriendsByUserId(long id) {
-        return jdbc.query(FIND_FRIENDS_BY_USER_ID_QUERY, mapper, id);
+        String findFriendsByUserIdQuery = """
+                SELECT * FROM USERS WHERE USER_ID IN
+                    (SELECT FRIEND_ID FROM FRIENDS WHERE USER_ID = ?)""";
+        return jdbc.query(findFriendsByUserIdQuery, mapper, id);
     }
 
     public void deleteUserById(long id) {

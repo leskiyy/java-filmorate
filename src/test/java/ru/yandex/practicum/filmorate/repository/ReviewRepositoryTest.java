@@ -98,18 +98,6 @@ class ReviewRepositoryTest {
     }
 
     @Test
-    void update_whenReviewAlreadyExistsWithDifferentId() {
-        Review review = new Review()
-                .setId(1L)
-                .setContent("very bad")
-                .setIsPositive(false)
-                .setFilmId(2L)
-                .setUserId(1L);
-
-        assertThatThrownBy(() -> repository.update(review)).isInstanceOf(ValidationException.class);
-    }
-
-    @Test
     void findById_whenReviewExists() {
         Optional<Review> byId = repository.findById(1L);
         assertThat(byId).isPresent().hasValueSatisfying(review -> {

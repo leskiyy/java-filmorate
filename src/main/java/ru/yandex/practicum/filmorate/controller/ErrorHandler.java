@@ -45,11 +45,11 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<List<User>> handleFriendNotFound(final DeletedUserException e) {
+    public ResponseEntity<Map<String, String>> handleConstraintViolationException(final DeletedUserException e) {
         log.error(e.getMessage());
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(new ArrayList<>());
-
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("NOT_FOUND", e.getMessage()));
     }
+
 }

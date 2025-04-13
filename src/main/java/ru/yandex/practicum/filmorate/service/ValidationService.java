@@ -37,6 +37,11 @@ public class ValidationService {
         }
     }
 
+    public void validateForFriends(long id) {
+        if (userRepository.isUserDeleted(id)) throw new DeletedUserException("User with ID=" + id + " is deleted");
+        validateUserById(id);
+    }
+
     public void validateFilmById(long... ids) {
         for (long id : ids) {
             if (!filmRepository.existById(id)) throw new NotFoundException("There is no film with id=" + id);

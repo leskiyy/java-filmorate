@@ -57,7 +57,7 @@ public class UserService {
     }
 
     public List<User> getFriendsByUserId(@Positive long id) {
-        validationService.validateUserById(id);
+        validationService.validateForFriends(id);
         return repository.getFriendsByUserId(id);
     }
 

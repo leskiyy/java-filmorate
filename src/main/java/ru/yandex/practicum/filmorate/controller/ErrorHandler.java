@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.yandex.practicum.filmorate.exceptions.DeletedUserException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+import ru.yandex.practicum.filmorate.model.User;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j

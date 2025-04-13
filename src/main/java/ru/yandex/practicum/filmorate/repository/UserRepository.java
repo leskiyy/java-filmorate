@@ -114,12 +114,6 @@ public class UserRepository {
         return jdbc.query(findFriendsByUserIdQuery, mapper, id);
     }
 
-    public void deleteUserById(long id) {
-        jdbc.update(DELETE_BY_ID, id);
-        String sql = "INSERT INTO DELETED_USERS (DELETED_USER_ID) VALUES (?);";
-        jdbc.update(sql, id);
-    }
-
     public boolean isUserDeleted(long id) {
         String sql = "SELECT COUNT(*) FROM DELETED_USERS WHERE DELETED_USER_ID = ?";
         return jdbc.queryForObject(sql, Integer.class, id) > 0;

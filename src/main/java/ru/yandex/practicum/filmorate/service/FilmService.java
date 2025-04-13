@@ -149,13 +149,6 @@ public class FilmService {
         return sortedFilms;
     }
 
-    public List<FilmDTO> getRecommendedFilms(long userId) {
-//        long userWithCommonLikes = userRepository.findUserWithCommonLikes(userId);
-        return filmRepository.getRecommendedFilms(userId).stream()
-                .map(this::toDTO)
-                .toList();
-    }
-
     private FilmDTO toDTO(Film film) {
         return FilmMapper.mapToDto(
                 film,

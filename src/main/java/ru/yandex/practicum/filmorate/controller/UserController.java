@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -11,9 +12,6 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
-import java.util.Map;
-
-import static ru.yandex.practicum.filmorate.utils.BooleanAnswerBuilder.*;
 
 @Slf4j
 @RestController
@@ -33,29 +31,27 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) {
+    public User updateUser(@Valid @RequestBody User user) {
         User updatedUser = userService.updateUser(user);
-        log.info("Successfully update user {}", updatedUser);
+        log.info("Successfully update user id={}", updatedUser.getId());
         return updatedUser;
     }
 
     @PostMapping
-    public User addUser(@RequestBody User user) {
+    public User addUser(@Valid @RequestBody User user) {
         User addedUser = userService.addUser(user);
-        log.info("Successfully add user {}", addedUser);
+        log.info("Successfully add user id={}", addedUser.getId());
         return addedUser;
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public Map<String, String> addFriend(@PathVariable long id, @PathVariable long friendId) {
-        boolean isSuccess = userService.addFriend(id, friendId);
-        return isSuccess ? addFriendSuccessAnswer(id, friendId) : addFriendFailAnswer(id, friendId);
+    public void addFriend(@PathVariable long id, @PathVariable long friendId) {
+        userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public Map<String, String> deleteFriend(@PathVariable long id, @PathVariable long friendId) {
-        boolean isSuccess = userService.deleteFriend(id, friendId);
-        return isSuccess ? deleteFriendSuccessAnswer(id, friendId) : deleteFriendFailAnswer(id, friendId);
+    public void deleteFriend(@PathVariable long id, @PathVariable long friendId) {
+        userService.deleteFriend(id, friendId);
     }
 
     @GetMapping("/{id}/friends")
@@ -79,9 +75,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public Map<String, String> deleteUserById(@PathVariable long userId) {
-        boolean isSuccess = userService.deleteUserById(userId);
-        return isSuccess ? deleteUserSuccessAnswer(userId) : deleteUserFailAnswer(userId);
+    public void deleteUserById(@PathVariable long userId) {
+        userService.deleteUserById(userId);
     }
 
     @GetMapping("/{userId}")

@@ -8,9 +8,6 @@ import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.ReviewService;
 
 import java.util.List;
-import java.util.Map;
-
-import static ru.yandex.practicum.filmorate.utils.BooleanAnswerBuilder.*;
 
 @Slf4j
 @RestController
@@ -24,21 +21,20 @@ public class ReviewController {
     @PostMapping
     public ReviewDTO addReview(@RequestBody ReviewDTO review) {
         ReviewDTO addedReview = service.addReview(review);
-        log.info("Successfully add review {}", review);
+        log.info("Successfully add review id={}", review.getReviewId());
         return addedReview;
     }
 
     @PutMapping
     public ReviewDTO updateReview(@RequestBody ReviewDTO review) {
         ReviewDTO updatedReview = service.updateReview(review);
-        log.info("Successfully update review {}", review);
+        log.info("Successfully update review id={}", review.getReviewId());
         return updatedReview;
     }
 
     @DeleteMapping("/{id}")
-    public Map<String, String> deleteReview(@PathVariable long id) {
-        boolean isSuccess = service.deleteReview(id);
-        return isSuccess ? deleteReviewSuccessAnswer(id) : deleteReviewFailAnswer(id);
+    public void deleteReview(@PathVariable long id) {
+        service.deleteReview(id);
     }
 
     @GetMapping("/{id}")
@@ -66,27 +62,22 @@ public class ReviewController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public Map<String, String> addLikeToReview(@PathVariable long id, @PathVariable long userId) {
-        boolean isSuccess = service.addReviewLike(id, userId);
-        return isSuccess ? addLikeToReviewSuccessAnswer(id, userId) : addLikeToReviewFailAnswer(id, userId);
+    public void addLikeToReview(@PathVariable long id, @PathVariable long userId) {
+        service.addReviewLike(id, userId);
     }
 
     @PutMapping("/{id}/dislike/{userId}")
-    public Map<String, String> addDislikeToReview(@PathVariable long id, @PathVariable long userId) {
-        boolean isSuccess = service.addReviewDislike(id, userId);
-        return isSuccess ? addDislikeToReviewSuccessAnswer(id, userId) : addDislikeToReviewFailAnswer(id, userId);
+    public void addDislikeToReview(@PathVariable long id, @PathVariable long userId) {
+        service.addReviewDislike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public Map<String, String> deleteReviewLikeOrDislike(@PathVariable long id, @PathVariable long userId) {
-        boolean isSuccess = service.deleteReviewLikeOrDislike(id, userId);
-        return isSuccess ?
-                deleteReviewLikeOrDislikeSuccessAnswer(id, userId) : deleteReviewLikeOrDislikeFailAnswer(id, userId);
+    public void deleteReviewLikeOrDislike(@PathVariable long id, @PathVariable long userId) {
+        service.deleteReviewLikeOrDislike(id, userId);
     }
 
     @DeleteMapping("/{id}/dislike/{userId}")
-    public Map<String, String> deleteReviewDislike(@PathVariable long id, @PathVariable long userId) {
-        boolean isSuccess = service.deleteReviewDislike(id, userId);
-        return isSuccess ? deleteReviewDislikeSuccessAnswer(id, userId) : deleteReviewDislikeFailAnswer(id, userId);
+    public void deleteReviewDislike(@PathVariable long id, @PathVariable long userId) {
+        service.deleteReviewDislike(id, userId);
     }
 }

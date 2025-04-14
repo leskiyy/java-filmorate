@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -29,13 +30,13 @@ public class DirectorController {
     }
 
     @PostMapping
-    public Director addDirector(@RequestBody Director director) {
+    public Director addDirector(@Valid @RequestBody Director director) {
         log.info("A request to add a director has been received.");
         return service.addDirector(director);
     }
 
     @PutMapping
-    public Director updateDirector(@RequestBody Director director) {
+    public Director updateDirector(@Valid @RequestBody Director director) {
         log.info("A request to update a director has been received.");
         return service.updateDirector(director);
     }

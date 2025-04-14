@@ -40,7 +40,7 @@ public class ReviewRepository {
     public Review save(Review review) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         String insertReviewQuery = """
-            INSERT INTO REVIEWS(CONTENT, IS_POSITIVE, USER_ID, FILM_ID) VALUES (?,?,?,?)""";
+                INSERT INTO REVIEWS(CONTENT, IS_POSITIVE, USER_ID, FILM_ID) VALUES (?,?,?,?)""";
         jdbc.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(insertReviewQuery, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, review.getContent());
@@ -58,7 +58,7 @@ public class ReviewRepository {
         Long id = review.getId();
         if (!existById(id)) throw new NotFoundException("There is no review with id=" + id);
         String updateReviewQuery = """
-            UPDATE REVIEWS SET CONTENT = ?, IS_POSITIVE = ? WHERE REVIEW_ID = ?""";
+                UPDATE REVIEWS SET CONTENT = ?, IS_POSITIVE = ? WHERE REVIEW_ID = ?""";
         try {
             jdbc.update(updateReviewQuery,
                     review.getContent(),
@@ -137,10 +137,10 @@ public class ReviewRepository {
 
     public int calculateUsefulByReviewId(long id) {
         String calculateUsefulByReviewId = """
-            SELECT
-            	SUM(CASE WHEN IS_DISLIKE = FALSE THEN 1 ELSE 0 END) -
-            	SUM(CASE WHEN IS_DISLIKE = TRUE THEN 1 ELSE 0 END) AS USEFUL
-            FROM REVIEW_LIKES WHERE REVIEW_ID = ?""";
+                SELECT
+                	SUM(CASE WHEN IS_DISLIKE = FALSE THEN 1 ELSE 0 END) -
+                	SUM(CASE WHEN IS_DISLIKE = TRUE THEN 1 ELSE 0 END) AS USEFUL
+                FROM REVIEW_LIKES WHERE REVIEW_ID = ?""";
         Integer useful = jdbc.queryForObject(calculateUsefulByReviewId, Integer.class, id);
         return useful == null ? 0 : useful;
     }

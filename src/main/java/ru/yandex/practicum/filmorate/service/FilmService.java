@@ -1,34 +1,28 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.MpaRepository;
-import ru.yandex.practicum.filmorate.repository.UserRepository;
 import ru.yandex.practicum.filmorate.utils.FilmMapper;
+import ru.yandex.practicum.filmorate.utils.OperationType;
 import ru.yandex.practicum.filmorate.utils.SearchBy;
 
 import java.util.*;
 
 @Service
-@Validated
 @RequiredArgsConstructor
 public class FilmService {
 
     private final FilmRepository filmRepository;
-    private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
     private final EventService eventService;
     private final ValidationService validationService;
-    private static final String METHOD_ADD = "ADD";
-    private static final String METHOD_REMOVE = "REMOVE";
-    private static final String METHOD_UPDATE = "UPDATE";
 
     public List<FilmDTO> getAllFilms() {
         return filmRepository.findAll().stream()
@@ -48,7 +42,7 @@ public class FilmService {
         return getFilmById(filmDto.getId());
     }
 
-    public FilmDTO addFilm(@Valid FilmDTO film) {
+    public FilmDTO addFilm(FilmDTO film) {
         validationService.validateFilmDto(film);
 
         Film save = filmRepository.save(FilmMapper.mapToFilm(film));
@@ -62,14 +56,14 @@ public class FilmService {
     public boolean addFilmLike(long id, long userId) {
         validationService.validateFilmById(id);
         validationService.validateUserById(userId);
-        eventService.createLikeEvent(userId, id, METHOD_ADD);
+        eventService.createLikeEvent(userId, id, OperationType.ADD);
         return filmRepository.addLike(id, userId);
     }
 
     public boolean deleteFilmLike(long id, long userId) {
         validationService.validateFilmById(id);
         validationService.validateUserById(userId);
-        eventService.createLikeEvent(userId, id, METHOD_REMOVE);
+        eventService.createLikeEvent(userId, id, OperationType.REMOVE);
         return filmRepository.removeLike(id, userId);
     }
 
@@ -126,7 +120,7 @@ public class FilmService {
                 SearchBy searchBy = SearchBy.valueOf(by.toUpperCase());
                 filmSet.addAll(filmRepository.search(query, searchBy));
             } catch (IllegalArgumentException e) {
-                // Illegal search param skip
+                throw new ValidationException("Search options must be in " + Arrays.toString(SearchBy.values()));
             }
         }
         return filmSet.stream().map(this::toDTO)

@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -9,6 +8,7 @@ import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
+import ru.yandex.practicum.filmorate.utils.OperationType;
 
 import java.util.List;
 
@@ -20,20 +20,18 @@ public class UserService {
     private final UserRepository repository;
     private final EventService eventService;
     private final ValidationService validationService;
-    private static final String METHOD_ADD = "ADD";
-    private static final String METHOD_REMOVE = "REMOVE";
 
     public List<User> getAllUsers() {
         return repository.findAll();
     }
 
-    public User updateUser(@Valid User user) {
+    public User updateUser(User user) {
         validationService.validateUserById(user.getId());
         validateName(user);
         return repository.update(user);
     }
 
-    public User addUser(@Valid User user) {
+    public User addUser(User user) {
         validateName(user);
         return repository.save(user);
     }
@@ -43,7 +41,7 @@ public class UserService {
             throw new ValidationException("Can't add yourself as a friend");
         }
         validationService.validateUserById(id, friendId);
-        eventService.createFriendEvent(id, friendId, METHOD_ADD);
+        eventService.createFriendEvent(id, friendId, OperationType.ADD);
         return repository.addFriendshipRow(id, friendId);
     }
 
@@ -52,7 +50,7 @@ public class UserService {
             throw new ValidationException("Can't delete yourself from friends");
         }
         validationService.validateUserById(id, friendId);
-        eventService.createFriendEvent(id, friendId, METHOD_REMOVE);
+        eventService.createFriendEvent(id, friendId, OperationType.REMOVE);
         return repository.deleteFriendshipRow(id, friendId);
     }
 

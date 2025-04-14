@@ -9,9 +9,8 @@ import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.dto.ReviewDTO;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.ReviewRepository;
-import ru.yandex.practicum.filmorate.repository.UserRepository;
+import ru.yandex.practicum.filmorate.utils.OperationType;
 
 import java.util.Comparator;
 import java.util.List;
@@ -25,13 +24,8 @@ import static ru.yandex.practicum.filmorate.utils.ReviewMapper.*;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
 
-    private final FilmRepository filmRepository;
-    private final UserRepository userRepository;
     private final EventService eventService;
     private final ValidationService validationService;
-    private static final String METHOD_ADD = "ADD";
-    private static final String METHOD_DELETE = "REMOVE";
-    private static final String METHOD_UPDATE = "UPDATE";
 
     public ReviewDTO getReviewsById(@NotNull Long id) {
         Optional<Review> optionalReview = reviewRepository.findById(id);
@@ -46,7 +40,7 @@ public class ReviewService {
         validationService.validateUserById(review.getUserId());
         validationService.validateFilmById(review.getFilmId());
         Review save = reviewRepository.save(mapToReview(review));
-        eventService.createReviewEvent(save.getUserId(), save.getId(), METHOD_ADD);
+        eventService.createReviewEvent(save.getUserId(), save.getId(), OperationType.ADD);
         return mapToDto(save, 0);
     }
 
@@ -54,13 +48,13 @@ public class ReviewService {
         validationService.validateUserById(review.getUserId());
         validationService.validateFilmById(review.getFilmId());
         Review update = reviewRepository.update(mapToReview(review));
-        eventService.createReviewEvent(update.getUserId(), update.getId(), METHOD_UPDATE);
+        eventService.createReviewEvent(update.getUserId(), update.getId(), OperationType.UPDATE);
         return mapToDto(update, reviewRepository.calculateUsefulByReviewId(update.getId()));
     }
 
     public boolean deleteReview(@Positive long id) {
         ReviewDTO reviewDTO = getReviewsById(id);
-        eventService.createReviewEvent(reviewDTO.getUserId(), id, METHOD_DELETE);
+        eventService.createReviewEvent(reviewDTO.getUserId(), id, OperationType.REMOVE);
         return reviewRepository.deleteById(id);
     }
 

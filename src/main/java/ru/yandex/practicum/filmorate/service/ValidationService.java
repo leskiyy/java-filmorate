@@ -69,7 +69,7 @@ public class ValidationService {
     }
 
     public void validateDirectorById(int... ids) {
-        for (int id: ids) {
+        for (int id : ids) {
             if (!directorRepository.isDirectorExists(id)) {
                 throw new NotFoundException("There is no director with id=" + id);
             }

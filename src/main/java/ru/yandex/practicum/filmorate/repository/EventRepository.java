@@ -32,7 +32,7 @@ public class EventRepository {
 
     public Event create(Event event) {
         String sql = "INSERT INTO events (user_id, event_type, operation, entity_id, created_at) " +
-                "VALUES (?, ?, ?, ?, ?)";
+                     "VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {

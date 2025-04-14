@@ -9,12 +9,13 @@ import ru.yandex.practicum.filmorate.dto.EventDTO;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.repository.EventRepository;
+import ru.yandex.practicum.filmorate.utils.EventType;
+import ru.yandex.practicum.filmorate.utils.OperationType;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -48,36 +49,41 @@ public class EventService {
     }
 
     private void validateEvent(Event event) {
-        if (!Set.of("LIKE", "REVIEW", "FRIEND").contains(event.getEventType())) {
+        try {
+            EventType.valueOf(event.getEventType());
+        } catch (IllegalArgumentException e) {
             throw new ValidationException("Invalid event type");
         }
-        if (!Set.of("ADD", "REMOVE", "UPDATE").contains(event.getOperation())) {
+        try {
+            OperationType.valueOf(event.getOperation());
+        } catch (IllegalArgumentException e) {
             throw new ValidationException("Invalid operation");
         }
+
     }
 
-    public EventDTO createFriendEvent(long userId, long friendId, String operation) {
+    public EventDTO createFriendEvent(long userId, long friendId, OperationType operation) {
         EventDTO eventDto = new EventDTO();
         eventDto.setUserId(userId);
-        eventDto.setEventType("FRIEND");
+        eventDto.setEventType(EventType.FRIEND);
         eventDto.setOperation(operation);
         eventDto.setEntityId(friendId);
         return createEvent(eventDto);
     }
 
-    public EventDTO createLikeEvent(long userId, long filmId, String operation) {
+    public EventDTO createLikeEvent(long userId, long filmId, OperationType operation) {
         EventDTO eventDto = new EventDTO();
         eventDto.setUserId(userId);
-        eventDto.setEventType("LIKE");
+        eventDto.setEventType(EventType.LIKE);
         eventDto.setOperation(operation);
         eventDto.setEntityId(filmId);
         return createEvent(eventDto);
     }
 
-    public EventDTO createReviewEvent(long userId, long reviewId, String operation) {
+    public EventDTO createReviewEvent(long userId, long reviewId, OperationType operation) {
         EventDTO eventDto = new EventDTO();
         eventDto.setUserId(userId);
-        eventDto.setEventType("REVIEW");
+        eventDto.setEventType(EventType.REVIEW);
         eventDto.setOperation(operation);
         eventDto.setEntityId(reviewId);
         return createEvent(eventDto);
@@ -89,8 +95,8 @@ public class EventService {
         return new EventDTO(
                 timestamp,
                 event.getUserId(),
-                event.getEventType(),
-                event.getOperation(),
+                EventType.valueOf(event.getEventType()),
+                OperationType.valueOf(event.getOperation()),
                 event.getEventId(),
                 event.getEntityId()
         );
@@ -106,8 +112,8 @@ public class EventService {
         return Event.builder()
                 .eventId(eventDto.getEventId())
                 .userId(eventDto.getUserId())
-                .eventType(eventDto.getEventType())
-                .operation(eventDto.getOperation())
+                .eventType(eventDto.getEventType().name())
+                .operation(eventDto.getOperation().name())
                 .entityId(eventDto.getEntityId())
                 .createdAt(createdAt)
                 .build();

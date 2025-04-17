@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.storage.GenreStorage;
+import ru.yandex.practicum.filmorate.repository.GenreRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,14 +14,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GenreService {
 
-    private final GenreStorage storage;
+    private final GenreRepository repository;
 
     public List<Genre> getAllGenres() {
-        return storage.findAll();
+        return repository.findAll();
     }
 
     public Genre getGenreById(@Positive int id) {
-        Optional<Genre> genreById = storage.findById(id);
+        Optional<Genre> genreById = repository.findById(id);
         if (genreById.isEmpty()) {
             throw new NotFoundException("There is no genre with id=" + id);
         } else {

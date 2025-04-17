@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.storage.MpaStorage;
+import ru.yandex.practicum.filmorate.repository.MpaRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,14 +14,14 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MpaService {
 
-    private final MpaStorage storage;
+    private final MpaRepository repository;
 
     public List<Mpa> getAllMpa() {
-        return storage.findAll();
+        return repository.findAll();
     }
 
     public Mpa getMpaById(@Positive int id) {
-        Optional<Mpa> mpaById = storage.findById(id);
+        Optional<Mpa> mpaById = repository.findById(id);
         if (mpaById.isEmpty()) {
             throw new NotFoundException("There is no mpa with id=" + id);
         } else {

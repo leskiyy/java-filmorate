@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.service;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -8,7 +7,8 @@ import org.springframework.validation.annotation.Validated;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
+import ru.yandex.practicum.filmorate.utils.OperationType;
 
 import java.util.List;
 
@@ -17,50 +17,53 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserStorage storage;
+    private final UserRepository repository;
+    private final EventService eventService;
+    private final ValidationService validationService;
 
     public List<User> getAllUsers() {
-        return storage.findAll();
+        return repository.findAll();
     }
 
-    public User updateUser(@Valid User user) {
-        validateUser(user.getId());
+    public User updateUser(User user) {
+        validationService.validateUserById(user.getId());
         validateName(user);
-        return storage.update(user);
+        return repository.update(user);
     }
 
-    public User addUser(@Valid User user) {
+    public User addUser(User user) {
         validateName(user);
-        return storage.save(user);
+        return repository.save(user);
     }
 
-    public boolean addFriend(@Positive long id, @Positive long friendId) {
+    public boolean addFriend(long id, long friendId) {
         if (id == friendId) {
             throw new ValidationException("Can't add yourself as a friend");
         }
-        validateUser(id, friendId);
-
-        return storage.addFriendshipRow(id, friendId);
+        validationService.validateUserById(id, friendId);
+        eventService.createFriendEvent(id, friendId, OperationType.ADD);
+        return repository.addFriendshipRow(id, friendId);
     }
 
     public boolean deleteFriend(@Positive long id, @Positive long friendId) {
         if (id == friendId) {
             throw new ValidationException("Can't delete yourself from friends");
         }
-        validateUser(id, friendId);
-        return storage.deleteFriendshipRow(id, friendId);
+        validationService.validateUserById(id, friendId);
+        eventService.createFriendEvent(id, friendId, OperationType.REMOVE);
+        return repository.deleteFriendshipRow(id, friendId);
     }
 
     public List<User> getFriendsByUserId(@Positive long id) {
-        validateUser(id);
-        return storage.getFriendsByUserId(id);
+        validationService.validateForFriends(id);
+        return repository.getFriendsByUserId(id);
     }
 
     public List<User> getCommonFriends(@Positive long id, @Positive long otherId) {
         if (id == otherId) {
             throw new ValidationException("Put different user ids");
         }
-        validateUser(id, otherId);
+        validationService.validateUserById(id, otherId);
         List<User> friendsByUserId1 = getFriendsByUserId(id);
         List<User> friendsByUserId2 = getFriendsByUserId(otherId);
         return friendsByUserId1.stream().filter(friendsByUserId2::contains).toList();
@@ -72,9 +75,12 @@ public class UserService {
         }
     }
 
-    private void validateUser(long... ids) {
-        for (long id : ids) {
-            if (!storage.existById(id)) throw new NotFoundException("There is no user with id=" + id);
-        }
+    public boolean deleteUserById(long userId) {
+        return repository.deleteById(userId);
+    }
+
+    public User getUserById(long userId) {
+        return repository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("There is no user with id=" + userId));
     }
 }

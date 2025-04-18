@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.exceptions.DeletedUserException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.repository.*;
 
@@ -17,6 +18,10 @@ public class ValidationService {
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
     private final DirectorRepository directorRepository;
+
+    public void validateMark(double mark) {
+        if (mark < 1 || mark > 10) throw new ValidationException("Mark must be between 1 and 10 inclusive");
+    }
 
     public void validateFilmDto(FilmDTO dto) {
         validateMpaById(dto.getMpa().getId());
@@ -35,11 +40,6 @@ public class ValidationService {
                 throw new NotFoundException("There is no user with id=" + id);
             }
         }
-    }
-
-    public void validateForFriends(long id) {
-        if (userRepository.isUserDeleted(id)) throw new DeletedUserException("User with ID=" + id + " is deleted");
-        validateUserById(id);
     }
 
     public void validateFilmById(long... ids) {

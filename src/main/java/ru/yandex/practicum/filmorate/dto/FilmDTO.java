@@ -46,7 +46,7 @@ public class FilmDTO {
     private Integer duration;
 
     @EqualsAndHashCode.Exclude
-    private Integer rate;
+    private Double rate;
 
     @NotNull
     private Mpa mpa;

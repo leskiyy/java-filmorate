@@ -53,11 +53,12 @@ public class FilmService {
         return getFilmById(save.getId());
     }
 
-    public boolean addFilmLike(long id, long userId) {
+    public boolean addFilmLike(long id, long userId, Double mark) {
         validationService.validateFilmById(id);
         validationService.validateUserById(userId);
+        if (mark != null) validationService.validateMark(mark);
         eventService.createLikeEvent(userId, id, OperationType.ADD);
-        return filmRepository.addLike(id, userId);
+        return filmRepository.addLike(id, userId, mark);
     }
 
     public boolean deleteFilmLike(long id, long userId) {
@@ -67,9 +68,21 @@ public class FilmService {
         return filmRepository.removeLike(id, userId);
     }
 
-    public List<FilmDTO> getPopularFilms(@Positive int count) {
-        return getAllFilms().stream()
-                .sorted(Comparator.comparingInt(FilmDTO::getRate).reversed())
+    public List<FilmDTO> getPopularFilms(Integer genreId, Integer year, @Positive int count) {
+        List<Film> films;
+        if (genreId != null && year != null) {
+            films = filmRepository.getPopularFilmsByGenreAndYear(genreId, year, count);
+        } else if (genreId != null) {
+            films = filmRepository.getPopularFilmsByGenre(genreId, count);
+        } else if (year != null) {
+            films = filmRepository.getPopularFilmsByYear(year, count);
+        } else {
+            films = filmRepository.findAll();
+        }
+
+        return films.stream()
+                .map(this::toDTO)
+                .sorted(Comparator.comparing(FilmDTO::getRate, Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(count)
                 .toList();
     }
@@ -92,27 +105,6 @@ public class FilmService {
                 .toList();
     }
 
-    public List<FilmDTO> getPopularFilmsByGenreAndYear(long genreId, int year, int count) {
-        List<Film> films = filmRepository.getPopularFilmsByGenreAndYear(genreId, year, count);
-        return films.stream()
-                .map(this::toDTO)
-                .toList();
-    }
-
-    public List<FilmDTO> getPopularFilmsByGenre(long genreId, int count) {
-        List<Film> films = filmRepository.getPopularFilmsByGenre(genreId, count);
-        return films.stream()
-                .map(this::toDTO)
-                .toList();
-    }
-
-    public List<FilmDTO> getPopularFilmsByYear(Integer year, int count) {
-        List<Film> films = filmRepository.getPopularFilmsByYear(year, count);
-        return films.stream()
-                .map(this::toDTO)
-                .toList();
-    }
-
     public List<FilmDTO> searchFilms(String query, String... searchOptions) {
         Set<Film> filmSet = new HashSet<>();
         for (String by : searchOptions) {
@@ -124,32 +116,25 @@ public class FilmService {
             }
         }
         return filmSet.stream().map(this::toDTO)
-                .sorted(Comparator.comparing(FilmDTO::getRate).reversed().thenComparingLong(FilmDTO::getId))
+                .sorted(Comparator.comparing(FilmDTO::getRate, Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
     }
 
     public List<FilmDTO> getSortedByDirectorFilms(int directorId, String sortBy) {
         validationService.validateDirectorById(directorId);
-        List<Long> ids = new ArrayList<>();
-        if (sortBy.equals("year")) {
-            ids = filmRepository.sortedByYear(directorId);
-        } else if (sortBy.equals("likes")) {
-            ids = filmRepository.sortedByLikes(directorId);
+        List<Film> filmsByDirectorId = filmRepository.getFilmsByDirectorId(directorId);
+        Comparator<FilmDTO> comparator = null;
+        if (sortBy.equals("rate")) {
+            comparator = Comparator.comparing(FilmDTO::getRate, Comparator.nullsLast(Comparator.reverseOrder()));
+        } else if (sortBy.equals("year")) {
+            comparator = Comparator.comparing(FilmDTO::getReleaseDate);
+        } else {
+            throw new ValidationException("Sort by must be rate or year");
         }
-        List<FilmDTO> sortedFilms = new ArrayList<>();
-        for (Long filmId : ids) {
-            sortedFilms.add(getFilmById(filmId));
-        }
-        return sortedFilms;
-    }
-
-    private FilmDTO toDTO(Film film) {
-        return FilmMapper.mapToDto(
-                film,
-                filmRepository.findGenresByFilmId(film.getId()),
-                mpaRepository.findById(film.getMpa()).orElse(null),
-                filmRepository.rateByFilmId(film.getId()),
-                filmRepository.findDirectorsByFilmId(film.getId()));
+        return filmsByDirectorId.stream()
+                .map(this::toDTO)
+                .sorted(comparator)
+                .toList();
     }
 
     public List<FilmDTO> getRecommendations(long userId) {
@@ -162,5 +147,14 @@ public class FilmService {
 
     public boolean deleteFilmById(long filmId) {
         return filmRepository.deleteById(filmId);
+    }
+
+    private FilmDTO toDTO(Film film) {
+        return FilmMapper.mapToDto(
+                film,
+                filmRepository.findGenresByFilmId(film.getId()),
+                mpaRepository.findById(film.getMpa()).orElse(null),
+                filmRepository.rateByFilmId(film.getId()),
+                filmRepository.findDirectorsByFilmId(film.getId()));
     }
 }

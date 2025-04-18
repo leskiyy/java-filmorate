@@ -113,14 +113,4 @@ public class UserRepository {
                     (SELECT FRIEND_ID FROM FRIENDS WHERE USER_ID = ?)""";
         return jdbc.query(findFriendsByUserIdQuery, mapper, id);
     }
-
-    public boolean isUserDeleted(long id) {
-        String sql = "SELECT COUNT(*) FROM DELETED_USERS WHERE DELETED_USER_ID = ?";
-        return jdbc.queryForObject(sql, Integer.class, id) > 0;
-    }
-
-    public User getUserById(long id) {
-        String sql = "SELECT * FROM USERS WHERE USER_ID = ?";
-        return jdbc.queryForObject(sql, mapper, id);
-    }
 }

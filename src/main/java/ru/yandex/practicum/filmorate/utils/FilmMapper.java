@@ -22,7 +22,7 @@ public class FilmMapper {
                 .setMpa(mpaId);
     }
 
-    public FilmDTO mapToDto(Film film, List<Genre> genres, Mpa mpa, int rate, List<Director> directors) {
+    public FilmDTO mapToDto(Film film, List<Genre> genres, Mpa mpa, Double rate, List<Director> directors) {
         return new FilmDTO()
                 .setId(film.getId())
                 .setName(film.getName())

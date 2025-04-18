@@ -47,7 +47,12 @@ public class FilmController {
 
     @PutMapping("/{id}/like/{userId}")
     public void addFilmLike(@PathVariable long id, @PathVariable long userId) {
-        filmService.addFilmLike(id, userId);
+        filmService.addFilmLike(id, userId, null);
+    }
+
+    @PutMapping("/{id}/like/{userId}/{mark}")
+    public void addFilmLike(@PathVariable long id, @PathVariable long userId, @PathVariable double mark) {
+        filmService.addFilmLike(id, userId, mark);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
@@ -63,16 +68,10 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDTO> getPopularFilmsByGenreAndYear(@RequestParam(required = false) Long genreId,
+    public List<FilmDTO> getPopularFilmsByGenreAndYear(@RequestParam(required = false) Integer genreId,
                                                        @RequestParam(required = false) Integer year,
                                                        @RequestParam(defaultValue = "10", required = false) int count) {
-        if ((genreId != null) && (year != null)) {
-            return filmService.getPopularFilmsByGenreAndYear(genreId, year, count);
-        } else if (genreId != null) {
-            return filmService.getPopularFilmsByGenre(genreId, count);
-        } else if (year != null) {
-            return filmService.getPopularFilmsByYear(year, count);
-        } else return filmService.getPopularFilms(count);
+        return filmService.getPopularFilms(genreId, year, count);
     }
 
     @GetMapping("/search")

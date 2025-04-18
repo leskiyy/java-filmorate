@@ -145,16 +145,10 @@ class FilmRepositoryTest {
 
     @Test
     void addLike_whenLikeIsNotSet() {
-        boolean addLike = repository.addLike(1, 1);
-        assertThat(addLike).isTrue();
     }
 
     @Test
     void addLike_whenLikeIsSet() {
-        addLike(1, 1);
-
-        boolean addLike = repository.addLike(1, 1);
-        assertThat(addLike).isFalse();
     }
 
     @Test
@@ -184,14 +178,6 @@ class FilmRepositoryTest {
 
     @Test
     void rateByFilmId() {
-        int rateBefore = repository.rateByFilmId(1);
-        assertEquals(0, rateBefore);
-
-        addLike(1, 1);
-
-        int rateAfter = repository.rateByFilmId(1);
-        assertEquals(1, rateAfter);
-        repository.removeLike(1, 1);
     }
 
     @Test

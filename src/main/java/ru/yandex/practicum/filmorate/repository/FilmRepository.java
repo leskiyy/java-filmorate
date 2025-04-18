@@ -96,10 +96,10 @@ public class FilmRepository {
         return jdbc.queryForObject(isFilmExist, Boolean.class, id);
     }
 
-    public boolean addLike(long id, long userId) {
-        String addLikeRowQuery = "INSERT INTO FILM_LIKES(FILM_ID, USER_ID) VALUES (?,?)";
+    public boolean addLike(long id, long userId, Double mark) {
+        String addLikeRowQuery = "MERGE INTO FILM_LIKES(FILM_ID, USER_ID, MARK) VALUES (?,?,?)";
         try {
-            jdbc.update(addLikeRowQuery, id, userId);
+            jdbc.update(addLikeRowQuery, id, userId, mark);
             return true;
         } catch (DataAccessException e) {
             return false;
@@ -129,9 +129,9 @@ public class FilmRepository {
         return jdbc.query(sql, directorRowMapper, id);
     }
 
-    public int rateByFilmId(long id) {
-        String calculateRateByFilmId = "SELECT COUNT(USER_ID) FROM FILM_LIKES WHERE FILM_ID = ?";
-        return jdbc.queryForObject(calculateRateByFilmId, Integer.class, id);
+    public Double rateByFilmId(long id) {
+        String calculateRateByFilmId = "SELECT AVG(MARK) FROM FILM_LIKES WHERE FILM_ID = ?";
+        return jdbc.queryForObject(calculateRateByFilmId, Double.class, id);
     }
 
     public void updateGenres(List<Genre> genres, long id) {
@@ -155,43 +155,31 @@ public class FilmRepository {
         return jdbc.query(findByUserIdLikes, filmRowMapper, userId);
     }
 
-    public List<Film> getPopularFilmsByGenreAndYear(long genreId, int year, int count) {
+    public List<Film> getPopularFilmsByGenreAndYear(int genreId, int year, int count) {
         String sql = """
-                SELECT f.*, m.NAME AS MPA_NAME
-                FROM FILMS f
-                JOIN MPA m ON f.MPA_ID = m.MPA_ID
-                JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID
-                LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID
-                WHERE fg.GENRE_ID = ? AND YEAR(f.RELEASE_DATE) = ?
-                GROUP BY f.FILM_ID
-                ORDER BY COUNT(fl.USER_ID) DESC
+                SELECT *
+                FROM FILMS WHERE FILM_ID IN (
+                SELECT FILM_ID FROM FILM_GENRES WHERE GENRE_ID = ?
+                INTERSECT
+                SELECT FILM_ID FROM FILMS WHERE YEAR(FILMS.RELEASE_DATE) = ?)
                 LIMIT ?""";
         return jdbc.query(sql, filmRowMapper, genreId, year, count);
     }
 
     public List<Film> getPopularFilmsByYear(int year, int count) {
         String sql = """
-                SELECT f.*, m.NAME AS MPA_NAME
-                FROM FILMS f
-                JOIN MPA m ON f.MPA_ID = m.MPA_ID
-                LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID
-                WHERE YEAR(f.RELEASE_DATE) = ?
-                GROUP BY f.FILM_ID
-                ORDER BY COUNT(fl.USER_ID) DESC
+                SELECT *
+                FROM FILMS WHERE FILM_ID IN (
+                SELECT FILM_ID FROM FILMS WHERE YEAR(FILMS.RELEASE_DATE) = ?)
                 LIMIT ?""";
         return jdbc.query(sql, filmRowMapper, year, count);
     }
 
-    public List<Film> getPopularFilmsByGenre(long genreId, int count) {
+    public List<Film> getPopularFilmsByGenre(int genreId, int count) {
         String sql = """
-                SELECT f.*, m.NAME AS MPA_NAME
-                FROM FILMS f
-                JOIN MPA m ON f.MPA_ID = m.MPA_ID
-                JOIN FILM_GENRES fg ON f.FILM_ID = fg.FILM_ID
-                LEFT JOIN FILM_LIKES fl ON f.FILM_ID = fl.FILM_ID
-                WHERE fg.GENRE_ID = ?
-                GROUP BY f.FILM_ID
-                ORDER BY COUNT(fl.USER_ID) DESC
+                SELECT *
+                FROM FILMS WHERE FILM_ID IN (
+                SELECT FILM_ID FROM FILM_GENRES WHERE GENRE_ID = ?)
                 LIMIT ?""";
         return jdbc.query(sql, filmRowMapper, genreId, count);
     }
@@ -223,26 +211,11 @@ public class FilmRepository {
         return directorsWithName;
     }
 
-    public List<Long> sortedByYear(int directorId) {
-        String sql = """
-                SELECT f.FILM_ID
-                FROM FILMS f
-                JOIN FILM_DIRECTORS fd ON f.film_id = fd.film_id
-                WHERE fd.director_id = ?
-                ORDER BY f.release_date""";
-        return jdbc.query(sql, (rs, rowNum) -> rs.getLong("FILM_ID"), directorId);
-    }
-
-    public List<Long> sortedByLikes(int directorId) {
-        String sql = """
-                SELECT f.film_id,
-                COUNT(l.film_id) as likes_count
-                FROM FILMS f
-                JOIN FILM_DIRECTORS fd ON f.film_id = fd.film_id
-                LEFT JOIN FILM_LIKES l ON f.film_id = l.film_id
-                WHERE fd.director_id = ? GROUP BY f.film_id
-                ORDER BY likes_count DESC""";
-        return jdbc.query(sql, (rs, rowNum) -> rs.getLong("FILM_ID"), directorId);
+    public List<Film> getFilmsByDirectorId(int directorId) {
+        String query = """
+                SELECT * FROM FILMS WHERE FILM_ID IN(
+                    SELECT FILM_ID FROM FILM_DIRECTORS WHERE DIRECTOR_ID = ?)""";
+        return jdbc.query(query, filmRowMapper, directorId);
     }
 
     public List<Film> getRecommendations(long userId) {
